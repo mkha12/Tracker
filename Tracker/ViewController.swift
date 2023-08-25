@@ -11,7 +11,7 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(Bundle.main.bundlePath)
+       
         // Do any additional setup after loading the view.
     }
    
