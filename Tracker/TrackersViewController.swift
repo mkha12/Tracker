@@ -165,16 +165,21 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         collectionView.reloadData()
     }
 
-
     private func filterVisibleCategories() {
-        guard let query = searchBar.text, !query.isEmpty else {
+        guard let query = searchBar.text else {
             visibleCategories = categories
             collectionView.reloadData()
             return
         }
 
+        let activeTrackersOnSelectedDate = trackerRecords.filter {
+            Calendar.current.isDate($0.date, inSameDayAs: currentDate)
+        }.map { $0.trackerId }
+
         visibleCategories = categories.map { category in
-            let filteredTrackers = category.trackers.filter { $0.name.lowercased().contains(query.lowercased()) }
+            let filteredTrackers = category.trackers.filter {
+                $0.name.lowercased().contains(query.lowercased()) && activeTrackersOnSelectedDate.contains($0.id)
+            }
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
 
