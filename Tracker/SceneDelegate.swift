@@ -8,10 +8,8 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        // Создание нового экземпляра MainTabBarController
         let mainTabBarController = MainTabBarController()
 
-        // Настройка окна с вашим mainTabBarController
         let window = UIWindow(windowScene: windowScene)
         window.rootViewController = mainTabBarController
 
