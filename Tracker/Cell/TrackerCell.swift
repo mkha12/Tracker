@@ -34,6 +34,7 @@ final class TrackerCell: UICollectionViewCell {
     private func setupCardView() {
         cardView = UIView()
         cardView.translatesAutoresizingMaskIntoConstraints = false
+        cardView.backgroundColor = .clear
         cardView.layer.cornerRadius = 16
         cardView.clipsToBounds = true
         contentView.addSubview(cardView)
@@ -48,15 +49,19 @@ final class TrackerCell: UICollectionViewCell {
     
     private func setupTrackerView() {
         trackerView = UIView()
+
         trackerView.translatesAutoresizingMaskIntoConstraints = false
         cardView.addSubview(trackerView)
         trackerView.layer.cornerRadius = 16
+        trackerView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner]
+
           
         NSLayoutConstraint.activate([
             trackerView.topAnchor.constraint(equalTo: cardView.topAnchor),
             trackerView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor),
             trackerView.trailingAnchor.constraint(equalTo: cardView.trailingAnchor),
             trackerView.heightAnchor.constraint(equalToConstant: 90)
+
         ])
     }
 
@@ -64,9 +69,10 @@ final class TrackerCell: UICollectionViewCell {
         daysView = UIView()
         daysView.translatesAutoresizingMaskIntoConstraints = false
         cardView.addSubview(daysView)
-        daysView.backgroundColor = .white
+        daysView.backgroundColor = .clear
         daysView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         daysView.layer.cornerRadius = 16
+
 
         NSLayoutConstraint.activate([
             daysView.topAnchor.constraint(equalTo: trackerView.bottomAnchor),
@@ -144,7 +150,7 @@ final class TrackerCell: UICollectionViewCell {
         ])
     }
 
-    func configure(with tracker: Tracker) {
+    func configure(with tracker: Tracker, currentDate: Date) {
         self.tracker = tracker
         emojiLabel.text = tracker.emoji
         nameLabel.text = tracker.name
@@ -152,9 +158,16 @@ final class TrackerCell: UICollectionViewCell {
             daysLabel.text = daysText(for: daysCount)
         }
 
-        cardView.backgroundColor = tracker.color
+        trackerView.backgroundColor = tracker.color
         addButton.backgroundColor = tracker.color
+        
+        if let isTrackerActiveOnCurrentDay = tracker.schedule?[currentDate.weekday] {
+            addButton.isHidden = !isTrackerActiveOnCurrentDay
+        } else {
+            addButton.isHidden = true 
+        }
     }
+
     
     func daysText(for days: Int) -> String {
         switch days {
@@ -166,5 +179,14 @@ final class TrackerCell: UICollectionViewCell {
             return "\(days) дней"
         }
     }
+    
+    func showCompletedState() {
+        addButton.setTitle("✓", for: .normal)
+    }
+
+    func showNotCompletedState() {
+        addButton.setTitle("+", for: .normal)
+    }
+
 }
 

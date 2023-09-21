@@ -59,6 +59,35 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CC9307292ABC641F00A9170A /* Modals */ = {
+			isa = PBXGroup;
+			children = (
+				CCBBA1F12A9914C10054174F /* TrackerModals.swift */,
+			);
+			path = Modals;
+			sourceTree = "<group>";
+		};
+		CC93072A2ABC643900A9170A /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				CCBBA1F32A9923540054174F /* TrackerCreationViewController.swift */,
+				CCD3C6022AA2524E00B5804C /* CategoryViewController.swift */,
+				CCBBA1EF2A979E700054174F /* SelectionViewController.swift */,
+				CCBBA1ED2A978BF50054174F /* TrackersViewController.swift */,
+				CCBBA1F52A9923800054174F /* ScheduleSettingViewController.swift */,
+			);
+			path = ViewControllers;
+			sourceTree = "<group>";
+		};
+		CC93072B2ABC646000A9170A /* Collections */ = {
+			isa = PBXGroup;
+			children = (
+				CCB756F62A9E02DE007DC0FF /* EmojiCollectionView.swift */,
+				CCB756F42A9E02C0007DC0FF /* ColorCollectionView.swift */,
+			);
+			path = Collections;
+			sourceTree = "<group>";
+		};
 		CCBBA1C82A976EAE0054174F = {
 			isa = PBXGroup;
 			children = (
@@ -78,19 +107,13 @@
 		CCBBA1D32A976EAE0054174F /* Tracker */ = {
 			isa = PBXGroup;
 			children = (
+				CC93072B2ABC646000A9170A /* Collections */,
+				CC93072A2ABC643900A9170A /* ViewControllers */,
+				CC9307292ABC641F00A9170A /* Modals */,
 				CCD3C6052AA252DA00B5804C /* Cell */,
-				CCBBA1F12A9914C10054174F /* TrackerModals.swift */,
-				CCBBA1F52A9923800054174F /* ScheduleSettingViewController.swift */,
-				CCBBA1F32A9923540054174F /* TrackerCreationViewController.swift */,
-				CCBBA1EF2A979E700054174F /* SelectionViewController.swift */,
-				CCBBA1ED2A978BF50054174F /* TrackersViewController.swift */,
 				CCBBA1D42A976EAE0054174F /* AppDelegate.swift */,
 				CCBBA1D62A976EAE0054174F /* SceneDelegate.swift */,
 				CCBBA1EB2A978BAD0054174F /* TabBarController.swift */,
-				CCBBA1F72A9B71B80054174F /* TrackerCell.swift */,
-				CCB756F62A9E02DE007DC0FF /* EmojiCollectionView.swift */,
-				CCB756F42A9E02C0007DC0FF /* ColorCollectionView.swift */,
-				CCD3C6022AA2524E00B5804C /* CategoryViewController.swift */,
 				CCBBA1DD2A976EAF0054174F /* Assets.xcassets */,
 				CCBBA1EA2A9783FC0054174F /* Helpers */,
 				CCBBA1DF2A976EAF0054174F /* LaunchScreen.storyboard */,
@@ -111,6 +134,7 @@
 			isa = PBXGroup;
 			children = (
 				CCB756FA2A9E21FC007DC0FF /* ColorCollectionViewCell.swift */,
+				CCBBA1F72A9B71B80054174F /* TrackerCell.swift */,
 				CCB756F82A9E2096007DC0FF /* EmojiCollectionViewCell.swift */,
 			);
 			path = Cell;

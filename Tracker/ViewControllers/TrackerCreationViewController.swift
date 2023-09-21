@@ -36,6 +36,9 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ScheduleCell")
         setupUI()
+        
+        textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+            updateCreateButtonState()
     }
     
     
@@ -204,33 +207,62 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         
     }
     
+    @objc func textFieldDidChange(_ textField: UITextField) {
+        updateCreateButtonState()
+    }
+
+    func allRequiredFieldsFilled() -> Bool {
+        return !(textField.text?.isEmpty ?? true) && selectedEmoji != nil && selectedColor != nil && (isHabit ? selectedSchedule != nil : true)
+    }
+
+    func updateCreateButtonState() {
+        if allRequiredFieldsFilled() {
+            createButton.isEnabled = true
+            createButton.backgroundColor = .blackDay
+        } else {
+            createButton.isEnabled = false
+            createButton.backgroundColor = .gray
+        }
+    }
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return isHabit ? 2 : 1
     }
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell
+            
         if isHabit {
             if indexPath.row == 0 {
                 cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-                cell.textLabel?.text = selectedCategory != nil ? "Категория\n\(selectedCategory!.title)" : "Категория"
+                let categoryDetailText = selectedCategory?.title ?? ""
+                cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
             } else {
                 cell = tableView.dequeueReusableCell(withIdentifier: "ScheduleCell", for: indexPath)
                 if let selectedSchedule = selectedSchedule {
-                    let activeDays = selectedSchedule.compactMap { (day, isActive) -> String? in
-                        return isActive ? day.getShortName() : nil
+                    let allDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
+                    let scheduleText: String
+                    
+                    if allDays.allSatisfy({ selectedSchedule[$0] == true }) {
+                        scheduleText = "Каждый день"
+                    } else {
+                        let activeDays = selectedSchedule.compactMap { (day, isActive) -> String? in
+                            return isActive ? day.getShortName() : nil
+                        }
+                        scheduleText = activeDays.joined(separator: ", ")
                     }
-                    let scheduleText = "Расписание\n" + activeDays.joined(separator: ", ")
-                    cell.textLabel?.text = scheduleText
+                    
+                    cell.textLabel?.attributedText = attributedString(for: "Расписание", detail: scheduleText)
                 } else {
-                    cell.textLabel?.text = "Расписание"
+                    cell.textLabel?.attributedText = attributedString(for: "Расписание", detail: nil)
                 }
             }
         } else {
             cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-            cell.textLabel?.text = selectedCategory != nil ? "Категория\n\(selectedCategory!.title)" : "Категория"
+            let categoryDetailText = selectedCategory?.title ?? ""
+            cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
         }
-        
+            
+        // Общий код для установки атрибутов ячейки
         cell.backgroundColor = .backgroundDay
         cell.layer.cornerRadius = 8
         cell.clipsToBounds = true
@@ -238,9 +270,25 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         cell.accessoryType = .disclosureIndicator
         cell.accessoryView = UIImageView(image: UIImage(named: "Strelka"))
         cell.textLabel?.numberOfLines = 0
-        
+            
         return cell
     }
+
+
+
+    func attributedString(for title: String, detail: String?) -> NSAttributedString {
+        let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.black]
+        let detailAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.gray]
+        
+        let attributedTitle = NSAttributedString(string: title, attributes: titleAttributes)
+        let attributedDetail = NSAttributedString(string: "\n\(detail ?? "")", attributes: detailAttributes)
+        
+        let combinedString = NSMutableAttributedString()
+        combinedString.append(attributedTitle)
+        combinedString.append(attributedDetail)
+        return combinedString
+    }
+
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75
@@ -248,10 +296,12 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     
     func didSelectColor(_ color: UIColor) {
         selectedColor = color
+        updateCreateButtonState()
     }
     
     func didSelectEmoji(_ emoji: String) {
         selectedEmoji = emoji
+        updateCreateButtonState()
     }
     
     func didSelectCategory(_ category: TrackerCategory) {
@@ -259,17 +309,26 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         categoryCell.textLabel?.text = category.title
         categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
         tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
+        updateCreateButtonState()
     }
-    
     func didUpdateSchedule(_ schedule: [WeekDay: Bool]) {
         selectedSchedule = schedule
-        let activeDays = schedule.compactMap { (day, isActive) -> String? in
-            return isActive ? day.rawValue : nil
+        
+        let allDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
+        if allDays.allSatisfy({ schedule[$0] == true }) {
+            scheduleCell.textLabel?.text = "Каждый день"
+        } else {
+            let activeDays = schedule.compactMap { (day, isActive) -> String? in
+                return isActive ? day.getShortName() : nil
+            }
+            let scheduleText = "Расписание\n" + activeDays.joined(separator: ", ")
+            scheduleCell.textLabel?.text = scheduleText
         }
-        let scheduleText = activeDays.joined(separator: ", ")
-        scheduleCell.textLabel?.text = scheduleText
+        
         tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
+        updateCreateButtonState()
     }
+
     
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -277,10 +336,12 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         if isHabit {
             if indexPath.row == 0 {
                 let categorySelectionVC = CategoryViewController()
+                
                 categorySelectionVC.delegate = self
                 self.navigationController?.pushViewController(categorySelectionVC, animated: true)
             } else if indexPath.row == 1 {
                 let scheduleSelectionVC = ScheduleSettingViewController()
+                scheduleSelectionVC.selectedDays = self.selectedSchedule ?? [:]
                 scheduleSelectionVC.delegate = self
                 self.navigationController?.pushViewController(scheduleSelectionVC, animated: true)
             }

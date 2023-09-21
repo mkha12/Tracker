@@ -18,6 +18,10 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     let separatorView = UIView()
     let layout = UICollectionViewFlowLayout()
     var trackerRecords: [TrackerRecord] = []
+    var notFoundImageView: UIImageView!
+    var notFoundLabel: UILabel!
+    var notFoundStackView: UIStackView!
+
 
     
     override func viewDidLoad() {
@@ -38,8 +42,10 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
 
         navigationController?.navigationBar.prefersLargeTitles = true
 
+
         
         datePicker = UIDatePicker()
+        datePicker.calendar.firstWeekday = 2
         datePicker.datePickerMode = .date
         datePicker.preferredDatePickerStyle = .compact
         datePicker.addTarget(self, action: #selector(dateChanged), for: .valueChanged)
@@ -71,7 +77,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         emptyTrackersLabel = UILabel()
         emptyTrackersLabel.text = "Что будем отслеживать?"
         emptyTrackersLabel.textColor = .blackDay
-        emptyTrackersLabel.font = UIFont.systemFont(ofSize: 12)
+        emptyTrackersLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         emptyTrackersLabel.textAlignment = .center
 
         emptyTrackersStackView = UIStackView(arrangedSubviews: [emptyTrackersImageView, emptyTrackersLabel])
@@ -84,6 +90,22 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         collectionView.register(UICollectionReusableView.self, forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "CategoryHeader")
         
         collectionView.register(TrackerCell.self, forCellWithReuseIdentifier: "TrackerCell")
+        
+        notFoundImageView = UIImageView(image: UIImage(named: "Zaglushka2"))
+        notFoundImageView.contentMode = .scaleAspectFit
+                
+        notFoundLabel = UILabel()
+        notFoundLabel.text = "Ничего не найдено"
+        notFoundLabel.textColor = .blackDay
+        notFoundLabel.font = UIFont.systemFont(ofSize: 12)
+        notFoundLabel.textAlignment = .center
+
+        notFoundStackView = UIStackView(arrangedSubviews: [notFoundImageView, notFoundLabel])
+        notFoundStackView.axis = .vertical
+        notFoundStackView.spacing = 10
+        notFoundStackView.translatesAutoresizingMaskIntoConstraints = false
+        notFoundStackView.isHidden = true
+        view.addSubview(notFoundStackView)
         
         
         setupConstraints()
@@ -109,16 +131,21 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             separatorView.heightAnchor.constraint(equalToConstant: 1),
             
             emptyTrackersStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            emptyTrackersStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+            emptyTrackersStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             
-            
+            notFoundStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            notFoundStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
         ])
     }
     
     
     func addNewTracker(_ tracker: Tracker, toCategory categoryName: String) {
         if let index = categories.firstIndex(where: { $0.title == categoryName }) {
-            categories[index].trackers.append(tracker)
+            var updatedTrackers = categories[index].trackers
+            updatedTrackers.append(tracker)
+            
+            let updatedCategory = TrackerCategory(title: categoryName, trackers: updatedTrackers)
+            categories[index] = updatedCategory
         } else {
             let newCategory = TrackerCategory(title: categoryName, trackers: [tracker])
             categories.append(newCategory)
@@ -130,6 +157,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         updateEmptyTrackersVisibility()
         collectionView.reloadData()
     }
+
     
     func didCreateTracker(tracker: Tracker) {
         addNewTracker(tracker, toCategory: "Общая")
@@ -152,46 +180,59 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     @objc func dateChanged() {
         currentDate = datePicker.date
-        
+            
         if currentDate > Date() {
-            let alert = UIAlertController(title: "Ошибка", message: "Невозможно выбрать будущую дату.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            datePicker.setDate(currentDate, animated: true)
             return
         }
-        
+            
         filterVisibleCategories()
         collectionView.reloadData()
     }
 
+
     private func filterVisibleCategories() {
-        guard let query = searchBar.text else {
-            visibleCategories = categories
-            collectionView.reloadData()
-            return
-        }
-
-        let activeTrackersOnSelectedDate = trackerRecords.filter {
-            Calendar.current.isDate($0.date, inSameDayAs: currentDate)
-        }.map { $0.trackerId }
-
-        visibleCategories = categories.map { category in
-            let filteredTrackers = category.trackers.filter {
-                $0.name.lowercased().contains(query.lowercased()) && activeTrackersOnSelectedDate.contains($0.id)
+        if let query = searchBar.text, !query.isEmpty {
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { tracker in
+                    let matches = tracker.name.lowercased().contains(query.lowercased()) && (tracker.schedule?[currentDate.weekday] ?? false)
+                    if matches {
+                    }
+                    return matches
+                }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
+        } else {
+            visibleCategories = categories.filter { category in
+                category.trackers.contains { tracker in
+                    let matches = tracker.schedule?[currentDate.weekday] ?? false
+                    if matches {
+                    }
+                    return matches
+                }
             }
-            return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
-
+        }
+        updateEmptyTrackersVisibility()
         collectionView.reloadData()
     }
 
-    
+
     func updateEmptyTrackersVisibility() {
-        emptyTrackersStackView.isHidden = !visibleCategories.isEmpty
+        let isSearchActive = !(searchBar.text ?? "").isEmpty
+        let noTrackersAvailable = visibleCategories.isEmpty
+
+        if isSearchActive && noTrackersAvailable {
+            emptyTrackersStackView.isHidden = true
+            notFoundStackView.isHidden = false
+        } else if !isSearchActive && noTrackersAvailable {
+            emptyTrackersStackView.isHidden = false
+            notFoundStackView.isHidden = true
+        } else {
+            emptyTrackersStackView.isHidden = true
+            notFoundStackView.isHidden = true
+        }
     }
-    
-    
+
+
 }
 
 extension TrackersViewController {
@@ -212,7 +253,16 @@ extension TrackersViewController {
             return self?.countDays(for: id) ?? 0
         }
 
-        cell.configure(with: tracker)
+        cell.configure(with: tracker, currentDate: currentDate)
+
+        let isCompleted = trackerRecords.contains {
+            $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate)
+        }
+        if isCompleted {
+            cell.showCompletedState()
+        } else {
+            cell.showNotCompletedState()
+        }
 
         cell.addButtonTapped = { [weak self] in
             self?.handleAddButtonTap(for: tracker)
@@ -220,8 +270,13 @@ extension TrackersViewController {
 
         return cell
     }
+
     
     private func handleAddButtonTap(for tracker: Tracker) {
+        
+        if currentDate > Date() {
+               return
+           }
         if completedTrackers.contains(tracker.id) {
             completedTrackers.remove(tracker.id)
             trackerRecords.removeAll { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }

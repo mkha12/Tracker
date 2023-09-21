@@ -25,7 +25,7 @@ final class ScheduleSettingViewController: UIViewController {
         tableView.rowHeight = 75
         tableView.layer.cornerRadius = 16
         tableView.separatorInset = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-        tableView.separatorColor = .gray 
+        tableView.separatorColor = .gray
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "DayCell")
         tableView.translatesAutoresizingMaskIntoConstraints = false
         return tableView
@@ -54,7 +54,9 @@ final class ScheduleSettingViewController: UIViewController {
         navigationItem.title = "Расписание"
         
         for day in WeekDay.allCases {
-            selectedDays[day] = false
+            if selectedDays[day] == nil {
+                selectedDays[day] = false
+            }
         }
         
         setupTableView()
@@ -64,6 +66,8 @@ final class ScheduleSettingViewController: UIViewController {
     func setupTableView() {
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.tableFooterView = UIView()
+        tableView.tableHeaderView = UIView(frame: CGRect(x: 0, y: 0, width: tableView.bounds.width, height: 1))
         view.addSubview(tableView)
         
         NSLayoutConstraint.activate([
@@ -89,7 +93,9 @@ final class ScheduleSettingViewController: UIViewController {
     
     private func getSwitch(for indexPath: IndexPath) -> UISwitch {
         let switchView = UISwitch(frame: .zero)
-        switchView.setOn(false, animated: true)
+        let day = WeekDay.allCases[indexPath.row]
+        switchView.setOn(selectedDays[day] ?? false, animated: false)
+        //switchView.setOn(false, animated: true)
         switchView.onTintColor = .blue
         switchView.tag = indexPath.row
         switchView.addTarget(self, action: #selector(switchChanged), for: .valueChanged)
@@ -109,7 +115,6 @@ final class ScheduleSettingViewController: UIViewController {
         let day = WeekDay.allCases[index]
         selectedDays[day] = sender.isOn
         
-        // Обновление UI
         let indexPath = IndexPath(row: index, section: 0)
         if let cell = tableView.cellForRow(at: indexPath) {
             cell.textLabel?.textColor = sender.isOn ? UIColor.green : UIColor.red
@@ -125,21 +130,23 @@ extension ScheduleSettingViewController: UITableViewDataSource, UITableViewDeleg
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "DayCell", for: indexPath)
-        cell.backgroundColor = .backgroundDay 
+        cell.backgroundColor = .backgroundDay
         cell.accessoryView = getSwitch(for: indexPath)
         
         if indexPath.row == 6 {
             cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: tableView.bounds.width)
         }
         
+        let day = WeekDay.allCases[indexPath.row]
         if #available(iOS 14.0, *) {
             var content = cell.defaultContentConfiguration()
-            content.text = WeekDay.allCases[indexPath.row].rawValue
+            content.text = day.rawValue
             cell.contentConfiguration = content
         } else {
-            cell.textLabel?.text = WeekDay.allCases[indexPath.row].rawValue
+            cell.textLabel?.text = day.rawValue
         }
-        
+        cell.selectionStyle = .none
+
         return cell
     }
 }
@@ -165,3 +172,12 @@ extension WeekDay {
     }
     
 }
+
+extension Date {
+    var weekday: WeekDay {
+        let calendarWeekday = Calendar.current.component(.weekday, from: self)
+        let adjustedIndex = (calendarWeekday + 5) % 7
+        return WeekDay.allCases[adjustedIndex]
+    }
+}
+
