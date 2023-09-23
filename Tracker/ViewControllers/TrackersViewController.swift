@@ -181,35 +181,29 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     @objc func dateChanged() {
         currentDate = datePicker.date
             
-        if currentDate > Date() {
-            return
-        }
+//        if currentDate > Date() {
+//            return
+//        }
             
         filterVisibleCategories()
         collectionView.reloadData()
     }
-
-
+ 
     private func filterVisibleCategories() {
         if let query = searchBar.text, !query.isEmpty {
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
-                    let matches = tracker.name.lowercased().contains(query.lowercased()) && (tracker.schedule?[currentDate.weekday] ?? false)
-                    if matches {
-                    }
-                    return matches
+                    return tracker.name.lowercased().contains(query.lowercased()) && (tracker.schedule?[currentDate.weekday] ?? false)
                 }
                 return TrackerCategory(title: category.title, trackers: filteredTrackers)
             }.filter { !$0.trackers.isEmpty }
         } else {
-            visibleCategories = categories.filter { category in
-                category.trackers.contains { tracker in
-                    let matches = tracker.schedule?[currentDate.weekday] ?? false
-                    if matches {
-                    }
-                    return matches
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { tracker in
+                    return tracker.schedule?[currentDate.weekday] ?? false
                 }
-            }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
         }
         updateEmptyTrackersVisibility()
         collectionView.reloadData()
