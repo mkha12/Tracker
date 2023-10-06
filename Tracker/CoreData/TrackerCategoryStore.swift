@@ -1,7 +1,7 @@
 import Foundation
 import CoreData
 
-class TrackerCateroryStore {
+final class TrackerCateroryStore {
     private let context: NSManagedObjectContext
     
     init(context: NSManagedObjectContext) {

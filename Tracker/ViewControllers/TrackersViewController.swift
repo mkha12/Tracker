@@ -21,6 +21,9 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var notFoundImageView: UIImageView!
     var notFoundLabel: UILabel!
     var notFoundStackView: UIStackView!
+    var trackers: [Tracker] = []
+    var trackerStore: TrackerStoreProtocol!
+   
 
 
     
@@ -30,6 +33,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         setupUI()
         updateEmptyTrackersVisibility()
         filterVisibleCategories()
+        loadTrackers()
     }
     
     private func setupUI() {
@@ -167,11 +171,12 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     @objc func presentAddNewTrackerScreen() {
         let trackerTypeSelectionVC = TrackerTypeSelectionViewController()
-        trackerTypeSelectionVC.delegate = self 
+        trackerTypeSelectionVC.delegate = self
+        trackerTypeSelectionVC.trackerStore = self.trackerStore // Передаем trackerStore
         let navigationController = UINavigationController(rootViewController: trackerTypeSelectionVC)
         present(navigationController, animated: true)
     }
-    
+
     
     func updateVisibleCategories() {
         let areTrackersAvailable = !visibleCategories.isEmpty
@@ -226,7 +231,10 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }
     }
 
-
+    func loadTrackers() {
+        trackers = trackerStore.fetchAllTrackers()
+        collectionView.reloadData()
+    }
 }
 
 extension TrackersViewController {

@@ -2,8 +2,9 @@ import Foundation
 import CoreData
 import UIKit
 
-class TrackerStore {
+final class TrackerStore: TrackerStoreProtocol {
     private let context: NSManagedObjectContext
+  
     
     init(context: NSManagedObjectContext) {
         self.context = context
@@ -48,3 +49,9 @@ extension Tracker {
         self.schedule = trackerCoreData.schedule as? [WeekDay: Bool] ?? [:]
     }
 }
+
+protocol TrackerStoreProtocol {
+    func fetchAllTrackers() -> [Tracker]
+    func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
+}
+

@@ -1,5 +1,3 @@
-
-
 import UIKit
 
 final class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, ColorSelectionDelegate, EmojiSelectionDelegate,ScheduleSettingViewControllerDelegate, CategoryViewControllerDelegate {
@@ -26,6 +24,8 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     private let colorCollectionView = ColorCollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private var selectedSchedule: [WeekDay: Bool]?
     private let scrollView = UIScrollView()
+    //var trackerStore: TrackerStoreProtocol?
+    var trackerStore: TrackerStoreProtocol?
 
     
     override func viewDidLoad() {
@@ -393,7 +393,15 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             return
         }
         
-        let tracker = Tracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? nil)
+        guard let trackerStore = trackerStore else {
+            fatalError("trackerStore is nil")
+        }
+
+        let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
+
+        
+        
+        // НАДО МНЕ УВЕДОМЛЯТЬ ДЕЛЕГАТ ИЛИ НЕТ?
         delegate?.didCreateTracker(tracker: tracker)
         dismiss(animated: true, completion: nil)
         
