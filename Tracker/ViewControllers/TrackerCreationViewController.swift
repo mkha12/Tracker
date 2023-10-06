@@ -262,7 +262,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
         }
             
-        // Общий код для установки атрибутов ячейки
         cell.backgroundColor = .backgroundDay
         cell.layer.cornerRadius = 8
         cell.clipsToBounds = true
@@ -351,7 +350,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             self.navigationController?.pushViewController(categorySelectionVC, animated: true)
         }
         
-        // Update cell text
         if let category = selectedCategory {
             categoryCell.textLabel?.text = category.title
             categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
@@ -371,6 +369,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
     
     @objc private func saveTracker() {
+        print("TrackerCreationViewController: saveTracker - начало")
         guard let trackerName = textField.text, !trackerName.isEmpty else {
             let alert = UIAlertController(title: "Ошибка", message: "Введите название трекера", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
@@ -398,9 +397,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         }
 
         let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
-
-        
-        
         // НАДО МНЕ УВЕДОМЛЯТЬ ДЕЛЕГАТ ИЛИ НЕТ?
         delegate?.didCreateTracker(tracker: tracker)
         dismiss(animated: true, completion: nil)

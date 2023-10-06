@@ -9,15 +9,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let mainTabBarController = MainTabBarController()
-        
-        // Создаем экземпляр TrackerStore с контекстом из AppDelegate.shared.persistentContainer
-        let trackerStore = TrackerStore(context: AppDelegate.shared.persistentContainer.viewContext)
+ 
+        let trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
 
-        // Если ваш TrackersViewController вложен в MainTabBarController, вы должны получить его
-        // сначала, например, через first ViewController UINavigationController, если он там есть.
-        // Этот код зависит от вашей конкретной иерархии контроллеров.
-
-        // Пример (предположим, что TrackersViewController - это первый tab вашего tab bar controller):
         if let navigationController = mainTabBarController.viewControllers?.first as? UINavigationController,
            let trackersViewController = navigationController.topViewController as? TrackersViewController {
             trackersViewController.trackerStore = trackerStore

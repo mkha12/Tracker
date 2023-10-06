@@ -2,13 +2,40 @@ import Foundation
 import CoreData
 import UIKit
 
-final class TrackerStore: TrackerStoreProtocol {
-    private let context: NSManagedObjectContext
-  
+final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsControllerDelegate {
     
+    private let context: NSManagedObjectContext
+    weak var delegate: TrackerStoreDelegate?
+  
     init(context: NSManagedObjectContext) {
         self.context = context
+        super.init()
+        setupFetchedResultsController()
     }
+    
+    private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCoreData> = {
+        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+
+        let controller = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: self.context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = self
+        return controller
+    }()
+    
+    private func setupFetchedResultsController() {
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            print("Failed to initialize FetchedResultsController: \(error)")
+        }
+    }
+    
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker {
         let tracker = TrackerCoreData(context: context)
         tracker.id = id
@@ -17,19 +44,15 @@ final class TrackerStore: TrackerStoreProtocol {
         tracker.emoji = emoji
         tracker.schedule = schedule as NSObject
         saveContext()
+        CoreDataManager.shared.saveContext()
         return Tracker(trackerCoreData: tracker)
     }
 
     func fetchAllTrackers() -> [Tracker] {
-        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-        do {
-            let results = try context.fetch(fetchRequest)
-            return results.map { Tracker(trackerCoreData: $0) }
-        } catch {
-            print("Failed to fetch trackers: \(error)")
-            return []
-        }
+        let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
+        return fetchedObjects.map { Tracker(trackerCoreData: $0) }
     }
+    
     func saveContext() {
         do {
             try context.save()
@@ -37,7 +60,11 @@ final class TrackerStore: TrackerStoreProtocol {
             print("Failed to save context: \(error)")
         }
     }
-
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        let trackers = fetchedResultsController.fetchedObjects?.map { Tracker(trackerCoreData: $0) } ?? []
+        delegate?.didChangeTrackers(trackers: trackers)
+    }
 }
 
 extension Tracker {
@@ -53,5 +80,9 @@ extension Tracker {
 protocol TrackerStoreProtocol {
     func fetchAllTrackers() -> [Tracker]
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
+}
+
+protocol TrackerStoreDelegate: AnyObject {
+    func didChangeTrackers(trackers: [Tracker])
 }
 

@@ -23,10 +23,9 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var notFoundStackView: UIStackView!
     var trackers: [Tracker] = []
     var trackerStore: TrackerStoreProtocol!
+    
    
 
-
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
@@ -34,6 +33,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         updateEmptyTrackersVisibility()
         filterVisibleCategories()
         loadTrackers()
+        let trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+        let trackers = trackerStore.fetchAllTrackers()
     }
     
     private func setupUI() {
@@ -159,7 +160,9 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         
         updateVisibleCategories()
         updateEmptyTrackersVisibility()
-        collectionView.reloadData()
+        DispatchQueue.main.async {
+            self.collectionView.reloadData()
+        }
     }
 
     
@@ -218,6 +221,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
         let noTrackersAvailable = visibleCategories.isEmpty
+    
 
         if isSearchActive && noTrackersAvailable {
             emptyTrackersStackView.isHidden = true
@@ -231,10 +235,16 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }
     }
 
+
     func loadTrackers() {
         trackers = trackerStore.fetchAllTrackers()
-        collectionView.reloadData()
+        let newCategory = TrackerCategory(title: "Общая", trackers: trackers)
+        categories = [newCategory]
+        filterVisibleCategories()
+        let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+          trackerRecords = recordStore.fetchAllRecords()
     }
+
 }
 
 extension TrackersViewController {
@@ -275,20 +285,18 @@ extension TrackersViewController {
 
     
     private func handleAddButtonTap(for tracker: Tracker) {
-        
-        if currentDate > Date() {
-               return
-           }
+        if currentDate > Date() { return }
+
+        let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
         if completedTrackers.contains(tracker.id) {
             completedTrackers.remove(tracker.id)
-            trackerRecords.removeAll { $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate) }
         } else {
             completedTrackers.insert(tracker.id)
-            let record = TrackerRecord(trackerId: tracker.id, date: currentDate)
-            trackerRecords.append(record)
+            let _ = recordStore.addRecord(trackerId: tracker.id, date: currentDate)
         }
-        collectionView.reloadData()
+        loadTrackers()
     }
+
 
     func countDays(for trackerId: UUID) -> Int {
         return trackerRecords.filter { $0.trackerId == trackerId }.count
@@ -301,7 +309,7 @@ extension TrackersViewController {
             let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "CategoryHeader", for: indexPath)
             let titleLabel = UILabel(frame: header.bounds)
             titleLabel.text = visibleCategories[indexPath.section].title
-            header.addSubview(titleLabel)  // Добавляем лейбл на header
+            header.addSubview(titleLabel)  
             
             return header
             

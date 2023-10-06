@@ -4,7 +4,6 @@ final class TrackerTypeSelectionViewController: UIViewController, CreateTrackerD
     
     var trackerCreationViewController: TrackerCreationViewController?
     var delegate: CreateTrackerDelegate?
-    //var trackerStore: TrackerStore?
     var trackerStore: TrackerStoreProtocol?
 
 
@@ -83,18 +82,18 @@ final class TrackerTypeSelectionViewController: UIViewController, CreateTrackerD
 
     @objc func habitTapped() {
         let trackerCreationVC = TrackerCreationViewController()
-        trackerCreationVC.delegate = self // Устанавливаем этот контроллер как делегат
+        trackerCreationVC.delegate = self
         trackerCreationVC.isHabit = true
-        trackerCreationVC.trackerStore = self.trackerStore // Инициализируем trackerStore
+        trackerCreationVC.trackerStore = self.trackerStore
         trackerCreationVC.hidesBottomBarWhenPushed = true
         self.navigationController?.pushViewController(trackerCreationVC, animated: true)
     }
 
     @objc func irregularEventTapped() {
         let trackerCreationVC = TrackerCreationViewController()
-        trackerCreationVC.delegate = self // Устанавливаем этот контроллер как делегат
+        trackerCreationVC.delegate = self
         trackerCreationVC.isHabit = false
-        trackerCreationVC.trackerStore = self.trackerStore // Инициализируем trackerStore
+        trackerCreationVC.trackerStore = self.trackerStore
         trackerCreationVC.hidesBottomBarWhenPushed = true
         self.navigationController?.pushViewController(trackerCreationVC, animated: true)
     }

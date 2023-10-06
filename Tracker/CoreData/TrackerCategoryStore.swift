@@ -1,12 +1,39 @@
 import Foundation
 import CoreData
 
-final class TrackerCateroryStore {
+final class TrackerCategoryStore: NSObject {
     private let context: NSManagedObjectContext
-    
+    weak var delegate: TrackerCategoryStoreDelegate?
+  
     init(context: NSManagedObjectContext) {
         self.context = context
+        super.init()
+        setupFetchedResultsController()
     }
+    
+    private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCategoryCoreData> = {
+        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptor]
+
+        let controller = NSFetchedResultsController(
+            fetchRequest: fetchRequest,
+            managedObjectContext: self.context,
+            sectionNameKeyPath: nil,
+            cacheName: nil
+        )
+        controller.delegate = self
+        return controller
+    }()
+    
+    private func setupFetchedResultsController() {
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            print("Failed to initialize FetchedResultsController: \(error)")
+        }
+    }
+    
     func createCategory(title: String, trackers: [Tracker]) -> TrackerCategory {
         let category = TrackerCategoryCoreData(context: context)
         category.title = title
@@ -16,21 +43,15 @@ final class TrackerCateroryStore {
         }
         category.trackers = NSSet(array: trackerCoreDataObjects)
         saveContext()
+        CoreDataManager.shared.saveContext()  // сохранение в persistentContainer
         return TrackerCategory(categoryCoreData: category)
     }
 
-
-
     func fetchAllCategories() -> [TrackerCategory] {
-        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-        do {
-            let results = try context.fetch(fetchRequest)
-            return results.map { TrackerCategory(categoryCoreData: $0) }
-        } catch {
-            print("Failed to fetch categories: \(error)")
-            return []
-        }
+        let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
+        return fetchedObjects.map { TrackerCategory(categoryCoreData: $0) }
     }
+    
     func saveContext() {
         do {
             try context.save()
@@ -38,7 +59,13 @@ final class TrackerCateroryStore {
             print("Failed to save context: \(error)")
         }
     }
+}
 
+extension TrackerCategoryStore: NSFetchedResultsControllerDelegate {
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        let categories = fetchedResultsController.fetchedObjects?.map { TrackerCategory(categoryCoreData: $0) } ?? []
+        delegate?.didChangeCategories(categories: categories)
+    }
 }
 
 extension TrackerCategory {
@@ -46,5 +73,9 @@ extension TrackerCategory {
         self.title = categoryCoreData.title ?? ""
         self.trackers = (categoryCoreData.trackers?.allObjects as? [TrackerCoreData])?.map(Tracker.init) ?? []
     }
-
 }
+
+protocol TrackerCategoryStoreDelegate: AnyObject {
+    func didChangeCategories(categories: [TrackerCategory])
+}
+
