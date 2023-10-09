@@ -1,7 +1,6 @@
 import UIKit
 
-@objc(UIColorValueTransformer)
-class UIColorValueTransformer: NSSecureUnarchiveFromDataTransformer {
+final class UIColorValueTransformer: NSSecureUnarchiveFromDataTransformer {
 
     override static var allowedTopLevelClasses: [AnyClass] {
         return [UIColor.self]

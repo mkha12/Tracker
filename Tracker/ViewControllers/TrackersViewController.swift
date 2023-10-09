@@ -22,7 +22,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var notFoundLabel: UILabel!
     var notFoundStackView: UIStackView!
     var trackers: [Tracker] = []
-    var trackerStore: TrackerStoreProtocol!
+    var trackerStore: TrackerStoreProtocol?
     
    
 
@@ -33,9 +33,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         updateEmptyTrackersVisibility()
         filterVisibleCategories()
         loadTrackers()
-        let trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
-        let trackers = trackerStore.fetchAllTrackers()
-    }
+        trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+        trackers = trackerStore?.fetchAllTrackers() ?? []    }
     
     private func setupUI() {
         
@@ -160,8 +159,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         
         updateVisibleCategories()
         updateEmptyTrackersVisibility()
-        DispatchQueue.main.async {
-            self.collectionView.reloadData()
+        DispatchQueue.main.async { [weak self] in
+            self?.collectionView.reloadData()
         }
     }
 
@@ -188,10 +187,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     @objc func dateChanged() {
         currentDate = datePicker.date
-            
-//        if currentDate > Date() {
-//            return
-//        }
             
         filterVisibleCategories()
         collectionView.reloadData()
@@ -235,14 +230,17 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }
     }
 
-
     func loadTrackers() {
+        guard let trackerStore = trackerStore else {
+            print("Error: trackerStore is nil")
+            return
+        }
         trackers = trackerStore.fetchAllTrackers()
         let newCategory = TrackerCategory(title: "Общая", trackers: trackers)
         categories = [newCategory]
         filterVisibleCategories()
         let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
-          trackerRecords = recordStore.fetchAllRecords()
+        trackerRecords = recordStore.fetchAllRecords()
     }
 
 }

@@ -1,6 +1,10 @@
 import Foundation
 import CoreData
 
+protocol TrackerCategoryStoreDelegate: AnyObject {
+    func didChangeCategories(categories: [TrackerCategory])
+}
+
 final class TrackerCategoryStore: NSObject {
     private let context: NSManagedObjectContext
     weak var delegate: TrackerCategoryStoreDelegate?
@@ -75,7 +79,4 @@ extension TrackerCategory {
     }
 }
 
-protocol TrackerCategoryStoreDelegate: AnyObject {
-    func didChangeCategories(categories: [TrackerCategory])
-}
 

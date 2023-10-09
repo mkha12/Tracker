@@ -1,7 +1,6 @@
 import Foundation
 
-@objc(ScheduleValueTransformer)
-class ScheduleValueTransformer: ValueTransformer {
+final class ScheduleValueTransformer: ValueTransformer {
     
     override func transformedValue(_ value: Any?) -> Any? {
         guard let value = value as? [WeekDay: Bool] else { return nil }
@@ -9,11 +8,19 @@ class ScheduleValueTransformer: ValueTransformer {
         return try? NSKeyedArchiver.archivedData(withRootObject: intBasedSchedule, requiringSecureCoding: false)
     }
 
+    
     override func reverseTransformedValue(_ value: Any?) -> Any? {
-        guard let data = value as? Data,
-              let intBasedSchedule = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? [Int: Bool] else { return nil }
-        return intBasedSchedule.mapKeys { WeekDay.fromInt($0) }
+        guard let data = value as? Data else { return nil }
+
+        do {
+            let intBasedSchedule = try NSKeyedUnarchiver.unarchivedObject(ofClass: NSDictionary.self, from: data) as? [Int: Bool]
+            return intBasedSchedule?.mapKeys { WeekDay.fromInt($0) }
+        } catch {
+            print("Couldn't unarchive data: \(error)")
+            return nil
+        }
     }
+
     
     public static func register() {
            let transformer = ScheduleValueTransformer()

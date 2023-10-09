@@ -1,6 +1,10 @@
 import Foundation
 import CoreData
 
+protocol TrackerRecordStoreDelegate: AnyObject {
+    func didChangeRecords(records: [TrackerRecord])
+}
+
 final class TrackerRecordStore: NSObject {
     private let context: NSManagedObjectContext
     weak var delegate: TrackerRecordStoreDelegate?
@@ -71,7 +75,4 @@ extension TrackerRecord {
     }
 }
 
-protocol TrackerRecordStoreDelegate: AnyObject {
-    func didChangeRecords(records: [TrackerRecord])
-}
 

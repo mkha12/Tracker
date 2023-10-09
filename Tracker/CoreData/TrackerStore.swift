@@ -2,6 +2,16 @@ import Foundation
 import CoreData
 import UIKit
 
+protocol TrackerStoreProtocol {
+    func fetchAllTrackers() -> [Tracker]
+    func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
+}
+
+protocol TrackerStoreDelegate: AnyObject {
+    func didChangeTrackers(trackers: [Tracker])
+}
+
+
 final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsControllerDelegate {
     
     private let context: NSManagedObjectContext
@@ -77,12 +87,4 @@ extension Tracker {
     }
 }
 
-protocol TrackerStoreProtocol {
-    func fetchAllTrackers() -> [Tracker]
-    func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
-}
-
-protocol TrackerStoreDelegate: AnyObject {
-    func didChangeTrackers(trackers: [Tracker])
-}
 

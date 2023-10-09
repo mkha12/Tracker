@@ -24,7 +24,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     private let colorCollectionView = ColorCollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     private var selectedSchedule: [WeekDay: Bool]?
     private let scrollView = UIScrollView()
-    //var trackerStore: TrackerStoreProtocol?
     var trackerStore: TrackerStoreProtocol?
 
     
