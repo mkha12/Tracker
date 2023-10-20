@@ -45,8 +45,7 @@ final class OnboardingPageController: UIViewController {
             let nextVC = (parent as! OnboardingViewController).viewController(at: currentIndex + 1)
             (parent as! OnboardingViewController).setViewControllers([nextVC!], direction: .forward, animated: true, completion: nil)
         } else {
-            print("Onboarding is completed!")
-            let trackersVC = TrackersViewController()
+            let trackersVC = MainTabBarController()
             
             UIApplication.shared.windows.first?.rootViewController = trackersVC
             UIApplication.shared.windows.first?.makeKeyAndVisible()

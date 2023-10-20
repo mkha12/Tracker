@@ -35,7 +35,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         loadTrackers()
         trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
         trackers = trackerStore?.fetchAllTrackers() ?? []
-        print("TrackersViewController did load!")
     }
     
     private func setupUI() {
