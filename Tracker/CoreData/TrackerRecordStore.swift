@@ -8,7 +8,7 @@ protocol TrackerRecordStoreDelegate: AnyObject {
 final class TrackerRecordStore: NSObject {
     private let context: NSManagedObjectContext
     weak var delegate: TrackerRecordStoreDelegate?
-  
+    
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
@@ -19,7 +19,7 @@ final class TrackerRecordStore: NSObject {
         let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "date", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
-
+        
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
             managedObjectContext: self.context,
@@ -46,7 +46,7 @@ final class TrackerRecordStore: NSObject {
         CoreDataManager.shared.saveContext()
         return TrackerRecord(recordCoreData: record)
     }
-
+    
     func fetchAllRecords() -> [TrackerRecord] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
         return fetchedObjects.map { TrackerRecord(recordCoreData: $0) }

@@ -9,21 +9,39 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         let mainTabBarController = MainTabBarController()
- 
+     
         let trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
 
         if let navigationController = mainTabBarController.viewControllers?.first as? UINavigationController,
            let trackersViewController = navigationController.topViewController as? TrackersViewController {
             trackersViewController.trackerStore = trackerStore
         }
-        
+            
         let window = UIWindow(windowScene: windowScene)
-        window.rootViewController = mainTabBarController
+
+        if isFirstLaunch() {
+            let onboardingViewController = OnboardingViewController() 
+            window.rootViewController = onboardingViewController
+        } else {
+            window.rootViewController = mainTabBarController
+        }
+
         self.window = window
         window.makeKeyAndVisible()
     }
 
+
 }
+
+func isFirstLaunch() -> Bool {
+    let key = "wasLaunchedBefore"
+    if UserDefaults.standard.bool(forKey: key) {
+        return false
+    }
+    UserDefaults.standard.set(true, forKey: key)
+    return true
+}
+
 
     func sceneDidDisconnect(_ scene: UIScene) {
         // Called as the scene is being released by the system.

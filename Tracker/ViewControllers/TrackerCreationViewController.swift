@@ -1,5 +1,10 @@
 import UIKit
 
+protocol CreateTrackerDelegate {
+    func didCreateTracker(tracker: Tracker)
+}
+
+
 final class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, ColorSelectionDelegate, EmojiSelectionDelegate,ScheduleSettingViewControllerDelegate, CategoryViewControllerDelegate {
     
     
@@ -25,7 +30,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     private var selectedSchedule: [WeekDay: Bool]?
     private let scrollView = UIScrollView()
     var trackerStore: TrackerStoreProtocol?
-
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,13 +42,13 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         setupUI()
         
         textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
-            updateCreateButtonState()
+        updateCreateButtonState()
     }
     
     
     func setupUI() {
         
-    
+        
         view.backgroundColor = .white
         view.addSubview(scrollView)
         
@@ -54,7 +59,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         scheduleCell.textLabel?.text = "Расписание"
         categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
         scheduleCell.textLabel?.font = UIFont.systemFont(ofSize: 17, weight: .regular)
-    
+        
         
         tableView.delegate = self
         tableView.dataSource = self
@@ -78,8 +83,8 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         textField.leftViewMode = .always
         
         contentView.addSubview(textField)
-
-    
+        
+        
         // Cancel Button
         cancelButton.setTitle("Отменить", for: .normal)
         cancelButton.addTarget(self, action: #selector(cancelCreation), for: .touchUpInside)
@@ -179,7 +184,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             colorHeaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             colorHeaderLabel.heightAnchor.constraint(equalToConstant: 19),
             
-
+            
             colorCollectionView.topAnchor.constraint(equalTo: colorHeaderLabel.bottomAnchor, constant: 0),
             colorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             colorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -189,19 +194,19 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             cancelButton.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 20),
             cancelButton.widthAnchor.constraint(equalToConstant: 166),
             cancelButton.heightAnchor.constraint(equalToConstant: 60),
-
+            
             createButton.topAnchor.constraint(equalTo: colorCollectionView.bottomAnchor, constant: 16),
             createButton.leadingAnchor.constraint(equalTo: cancelButton.trailingAnchor, constant: 8),
             createButton.widthAnchor.constraint(equalToConstant: 166),
             createButton.heightAnchor.constraint(equalToConstant: 60),
             createButton.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -16),
-
+            
             contentView.topAnchor.constraint(equalTo: scrollView.topAnchor),
             contentView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
             contentView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-
+            
         ])
         
     }
@@ -209,11 +214,11 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     @objc func textFieldDidChange(_ textField: UITextField) {
         updateCreateButtonState()
     }
-
+    
     func allRequiredFieldsFilled() -> Bool {
         return !(textField.text?.isEmpty ?? true) && selectedEmoji != nil && selectedColor != nil && (isHabit ? selectedSchedule != nil : true)
     }
-
+    
     func updateCreateButtonState() {
         if allRequiredFieldsFilled() {
             createButton.isEnabled = true
@@ -229,7 +234,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell
-            
+        
         if isHabit {
             if indexPath.row == 0 {
                 cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
@@ -260,7 +265,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             let categoryDetailText = selectedCategory?.title ?? ""
             cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
         }
-            
+        
         cell.backgroundColor = .backgroundDay
         cell.layer.cornerRadius = 8
         cell.clipsToBounds = true
@@ -268,12 +273,12 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         cell.accessoryType = .disclosureIndicator
         cell.accessoryView = UIImageView(image: UIImage(named: "Strelka"))
         cell.textLabel?.numberOfLines = 0
-            
+        
         return cell
     }
-
-
-
+    
+    
+    
     func attributedString(for title: String, detail: String?) -> NSAttributedString {
         let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.black]
         let detailAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.gray]
@@ -286,7 +291,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         combinedString.append(attributedDetail)
         return combinedString
     }
-
+    
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 75
@@ -326,7 +331,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
         updateCreateButtonState()
     }
-
+    
     
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -394,7 +399,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         guard let trackerStore = trackerStore else {
             fatalError("trackerStore is nil")
         }
-
+        
         let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
         // НАДО МНЕ УВЕДОМЛЯТЬ ДЕЛЕГАТ ИЛИ НЕТ?
         delegate?.didCreateTracker(tracker: tracker)
@@ -403,6 +408,3 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
 }
 
-protocol CreateTrackerDelegate {
-    func didCreateTracker(tracker: Tracker)
-}

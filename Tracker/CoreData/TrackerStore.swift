@@ -16,7 +16,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     
     private let context: NSManagedObjectContext
     weak var delegate: TrackerStoreDelegate?
-  
+    
     init(context: NSManagedObjectContext) {
         self.context = context
         super.init()
@@ -27,7 +27,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
         fetchRequest.sortDescriptors = [sortDescriptor]
-
+        
         let controller = NSFetchedResultsController(
             fetchRequest: fetchRequest,
             managedObjectContext: self.context,
@@ -57,7 +57,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         CoreDataManager.shared.saveContext()
         return Tracker(trackerCoreData: tracker)
     }
-
+    
     func fetchAllTrackers() -> [Tracker] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
         return fetchedObjects.map { Tracker(trackerCoreData: $0) }
