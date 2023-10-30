@@ -46,21 +46,27 @@ final class TrackerCategoryStore: NSObject {
             return trackerCoreData
         }
         category.trackers = NSSet(array: trackerCoreDataObjects)
+        print("Создаем категорию: \(title)")
         saveContext()
         CoreDataManager.shared.saveContext()  // сохранение в persistentContainer
+        print("Категория сохранена.")
         return TrackerCategory(categoryCoreData: category)
     }
     
     func fetchAllCategories() -> [TrackerCategory] {
+        print("Метод fetchAllCategories был вызван")
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
+        print("Извлечено категорий из Core Data: \(fetchedObjects.count)")
         return fetchedObjects.map { TrackerCategory(categoryCoreData: $0) }
     }
     
     func saveContext() {
         do {
             try context.save()
+            CoreDataManager.shared.saveContext()
+            print("Контекст успешно сохранен.")
         } catch {
-            print("Failed to save context: \(error)")
+            print("Ошибка при сохранении контекста: \(error)")
         }
     }
 }
@@ -78,5 +84,3 @@ extension TrackerCategory {
         self.trackers = (categoryCoreData.trackers?.allObjects as? [TrackerCoreData])?.map(Tracker.init) ?? []
     }
 }
-
-

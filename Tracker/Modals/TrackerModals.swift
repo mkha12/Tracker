@@ -8,6 +8,7 @@ struct Tracker {
     let schedule: [WeekDay: Bool]?
 }
 
+
 struct TrackerCategory {
     let title: String
     let trackers: [Tracker]

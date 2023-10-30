@@ -1,4 +1,3 @@
-
 import Foundation
 import CoreData
 
@@ -9,11 +8,14 @@ final class CoreDataManager {
         let container = NSPersistentContainer(name: "Model")
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
+                print("Failed to load persistent stores: \(error), \(error.userInfo)")
                 fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
-        }
-        return container
-    }()
+            } else {
+                        print("Persistent store loaded successfully")
+                    }
+                }
+                return container
+            }()
     
     private init() {}
     
@@ -29,5 +31,3 @@ final class CoreDataManager {
         }
     }
 }
-
-

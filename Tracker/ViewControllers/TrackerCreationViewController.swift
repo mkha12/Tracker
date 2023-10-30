@@ -30,19 +30,25 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     private var selectedSchedule: [WeekDay: Bool]?
     private let scrollView = UIScrollView()
     var trackerStore: TrackerStoreProtocol?
+    var categoriesViewModel: CategoriesViewModel!
+    var trackerCategoryStore: TrackerCategoryStore!
+
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.navigationItem.hidesBackButton = true
+        tableView.delegate = self
+        tableView.dataSource = self
         emojiCollectionView.emojiSelectionDelegate = self
         colorCollectionView.colorSelectionDelegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "ScheduleCell")
         setupUI()
-        
+        categoriesViewModel = CategoriesViewModel()
         textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
         updateCreateButtonState()
+        
     }
     
     
@@ -212,199 +218,204 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
     
     @objc func textFieldDidChange(_ textField: UITextField) {
-        updateCreateButtonState()
-    }
-    
-    func allRequiredFieldsFilled() -> Bool {
-        return !(textField.text?.isEmpty ?? true) && selectedEmoji != nil && selectedColor != nil && (isHabit ? selectedSchedule != nil : true)
-    }
-    
-    func updateCreateButtonState() {
-        if allRequiredFieldsFilled() {
-            createButton.isEnabled = true
-            createButton.backgroundColor = .blackDay
-        } else {
-            createButton.isEnabled = false
-            createButton.backgroundColor = .gray
+            updateCreateButtonState()
         }
-    }
+        
+        func allRequiredFieldsFilled() -> Bool {
+            return !(textField.text?.isEmpty ?? true) && selectedEmoji != nil && selectedColor != nil && (isHabit ? selectedSchedule != nil : true)
+        }
+        
+        func updateCreateButtonState() {
+            if allRequiredFieldsFilled() {
+                createButton.isEnabled = true
+                createButton.backgroundColor = .blackDay
+            } else {
+                createButton.isEnabled = false
+                createButton.backgroundColor = .gray
+            }
+        }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return isHabit ? 2 : 1
-    }
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell: UITableViewCell
-        
-        if isHabit {
-            if indexPath.row == 0 {
-                cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-                let categoryDetailText = selectedCategory?.title ?? ""
-                cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
-            } else {
-                cell = tableView.dequeueReusableCell(withIdentifier: "ScheduleCell", for: indexPath)
-                if let selectedSchedule = selectedSchedule {
-                    let allDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
-                    let scheduleText: String
-                    
-                    if allDays.allSatisfy({ selectedSchedule[$0] == true }) {
-                        scheduleText = "Каждый день"
-                    } else {
-                        let activeDays = selectedSchedule.compactMap { (day, isActive) -> String? in
-                            return isActive ? day.getShortName() : nil
-                        }
-                        scheduleText = activeDays.joined(separator: ", ")
-                    }
-                    
-                    cell.textLabel?.attributedText = attributedString(for: "Расписание", detail: scheduleText)
-                } else {
-                    cell.textLabel?.attributedText = attributedString(for: "Расписание", detail: nil)
-                }
-            }
-        } else {
-            cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-            let categoryDetailText = selectedCategory?.title ?? ""
-            cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
-        }
-        
-        cell.backgroundColor = .backgroundDay
-        cell.layer.cornerRadius = 8
-        cell.clipsToBounds = true
-        cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
-        cell.accessoryType = .disclosureIndicator
-        cell.accessoryView = UIImageView(image: UIImage(named: "Strelka"))
-        cell.textLabel?.numberOfLines = 0
-        
-        return cell
-    }
-    
-    
+           return isHabit ? 2 : 1
+       }
+       func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+           let cell: UITableViewCell
+           
+           if isHabit {
+               if indexPath.row == 0 {
+                   cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+                   let categoryDetailText = selectedCategory?.title ?? ""
+                   cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
+               } else {
+                   cell = tableView.dequeueReusableCell(withIdentifier: "ScheduleCell", for: indexPath)
+                   if let selectedSchedule = selectedSchedule {
+                       let allDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
+                       let scheduleText: String
+                       
+                       if allDays.allSatisfy({ selectedSchedule[$0] == true }) {
+                           scheduleText = "Каждый день"
+                       } else {
+                           let activeDays = selectedSchedule.compactMap { (day, isActive) -> String? in
+                               return isActive ? day.getShortName() : nil
+                           }
+                           scheduleText = activeDays.joined(separator: ", ")
+                       }
+                       
+                       cell.textLabel?.attributedText = attributedString(for: "Расписание", detail: scheduleText)
+                   } else {
+                       cell.textLabel?.attributedText = attributedString(for: "Расписание", detail: nil)
+                   }
+               }
+           } else {
+               cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+               let categoryDetailText = selectedCategory?.title ?? ""
+               cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
+           }
+           
+           cell.backgroundColor = .backgroundDay
+           cell.layer.cornerRadius = 8
+           cell.clipsToBounds = true
+           cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
+           cell.accessoryType = .disclosureIndicator
+           cell.accessoryView = UIImageView(image: UIImage(named: "Strelka"))
+           cell.textLabel?.numberOfLines = 0
+           
+           return cell
+       }
     
     func attributedString(for title: String, detail: String?) -> NSAttributedString {
-        let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.black]
-        let detailAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.gray]
-        
-        let attributedTitle = NSAttributedString(string: title, attributes: titleAttributes)
-        let attributedDetail = NSAttributedString(string: "\n\(detail ?? "")", attributes: detailAttributes)
-        
-        let combinedString = NSMutableAttributedString()
-        combinedString.append(attributedTitle)
-        combinedString.append(attributedDetail)
-        return combinedString
-    }
-    
+          let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.black]
+          let detailAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.gray]
+          
+          let attributedTitle = NSAttributedString(string: title, attributes: titleAttributes)
+          let attributedDetail = NSAttributedString(string: "\n\(detail ?? "")", attributes: detailAttributes)
+          
+          let combinedString = NSMutableAttributedString()
+          combinedString.append(attributedTitle)
+          combinedString.append(attributedDetail)
+          return combinedString
+      }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 75
-    }
-    
-    func didSelectColor(_ color: UIColor) {
-        selectedColor = color
-        updateCreateButtonState()
-    }
-    
-    func didSelectEmoji(_ emoji: String) {
-        selectedEmoji = emoji
-        updateCreateButtonState()
-    }
+           return 75
+       }
+       
+       func didSelectColor(_ color: UIColor) {
+           selectedColor = color
+           updateCreateButtonState()
+       }
+       
+       func didSelectEmoji(_ emoji: String) {
+           selectedEmoji = emoji
+           updateCreateButtonState()
+       }
     
     func didSelectCategory(_ category: TrackerCategory) {
-        selectedCategory = category
-        categoryCell.textLabel?.text = category.title
-        categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
-        tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
-        updateCreateButtonState()
-    }
-    func didUpdateSchedule(_ schedule: [WeekDay: Bool]) {
-        selectedSchedule = schedule
-        
-        let allDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
-        if allDays.allSatisfy({ schedule[$0] == true }) {
-            scheduleCell.textLabel?.text = "Каждый день"
-        } else {
-            let activeDays = schedule.compactMap { (day, isActive) -> String? in
-                return isActive ? day.getShortName() : nil
-            }
-            let scheduleText = "Расписание\n" + activeDays.joined(separator: ", ")
-            scheduleCell.textLabel?.text = scheduleText
-        }
-        
-        tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
-        updateCreateButtonState()
-    }
-    
-    
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        if isHabit {
-            if indexPath.row == 0 {
-                let categorySelectionVC = CategoryViewController()
-                
-                categorySelectionVC.delegate = self
-                self.navigationController?.pushViewController(categorySelectionVC, animated: true)
-            } else if indexPath.row == 1 {
-                let scheduleSelectionVC = ScheduleSettingViewController()
-                scheduleSelectionVC.selectedDays = self.selectedSchedule ?? [:]
-                scheduleSelectionVC.delegate = self
-                self.navigationController?.pushViewController(scheduleSelectionVC, animated: true)
-            }
-        } else {
-            let categorySelectionVC = CategoryViewController()
-            categorySelectionVC.delegate = self
-            self.navigationController?.pushViewController(categorySelectionVC, animated: true)
-        }
-        
-        if let category = selectedCategory {
+            selectedCategory = category
+        let categoryCellIndexPath = IndexPath(row: 0, section: 0)
             categoryCell.textLabel?.text = category.title
             categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
-            tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .automatic)
+            //tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
+        tableView.reloadRows(at: [categoryCellIndexPath], with: .none)
+            updateCreateButtonState()
         }
-        if let schedule = selectedSchedule {
-            let scheduleString = schedule.map { $0.key.getShortName() + ": " + ($0.value ? "Yes" : "No") }.joined(separator: ", ")
-            scheduleCell.textLabel?.text = scheduleString
-            scheduleCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
+        func didUpdateSchedule(_ schedule: [WeekDay: Bool]) {
+            selectedSchedule = schedule
+            
+            let allDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
+            if allDays.allSatisfy({ schedule[$0] == true }) {
+                scheduleCell.textLabel?.text = "Каждый день"
+            } else {
+                let activeDays = schedule.compactMap { (day, isActive) -> String? in
+                    return isActive ? day.getShortName() : nil
+                }
+                let scheduleText = "Расписание\n" + activeDays.joined(separator: ", ")
+                scheduleCell.textLabel?.text = scheduleText
+            }
+            
             tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
+            updateCreateButtonState()
         }
-    }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        print("TrackerCreationViewController: didSelectRowAt \(indexPath.row)")
+
+          tableView.deselectRow(at: indexPath, animated: true)
+          if isHabit {
+              if indexPath.row == 0 {
+                  let categorySelectionVC = CategoryViewController()
+                  categorySelectionVC.viewModel = self.categoriesViewModel // Передаём модель
+                  categorySelectionVC.delegate = self
+                  self.navigationController?.pushViewController(categorySelectionVC, animated: true)
+                  
+              } else if indexPath.row == 1 {
+                  let scheduleSelectionVC = ScheduleSettingViewController()
+                  scheduleSelectionVC.selectedDays = self.selectedSchedule ?? [:]
+                  scheduleSelectionVC.delegate = self
+                  self.navigationController?.pushViewController(scheduleSelectionVC, animated: true)
+              }
+              
+          } else {
+              let categorySelectionVC = CategoryViewController()
+              categorySelectionVC.delegate = self
+              self.navigationController?.pushViewController(categorySelectionVC, animated: true)
+          }
+              if let category = selectedCategory {
+                  print("CategoryViewController: didSelectRowAt \(indexPath.row), category: \(String(describing: selectedCategory?.title))")
+                     let indexPath = IndexPath(row: 0, section: 0)
+                     if let categoryCell = tableView.cellForRow(at: indexPath) {
+                         categoryCell.textLabel?.text = category.title
+                         categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
+                     }
+                     tableView.reloadRows(at: [indexPath], with: .automatic)
+                 }
+        
+    
+          if let schedule = selectedSchedule {
+              let scheduleString = schedule.map { $0.key.getShortName() + ": " + ($0.value ? "Yes" : "No") }.joined(separator: ", ")
+              scheduleCell.textLabel?.text = scheduleString
+              scheduleCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
+              tableView.reloadRows(at: [IndexPath(row: 1, section: 0)], with: .automatic)
+          }
+      }
     
     @objc private func cancelCreation() {
-        dismiss(animated: true, completion: nil)
-    }
-    
-    @objc private func saveTracker() {
-        print("TrackerCreationViewController: saveTracker - начало")
-        guard let trackerName = textField.text, !trackerName.isEmpty else {
-            let alert = UIAlertController(title: "Ошибка", message: "Введите название трекера", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
-            self.present(alert, animated: true, completion: nil)
-            return
-        }
+         dismiss(animated: true, completion: nil)
+     }
+     
+     @objc private func saveTracker() {
+         print("TrackerCreationViewController: saveTracker - начало")
+         guard let trackerName = textField.text, !trackerName.isEmpty else {
+             let alert = UIAlertController(title: "Ошибка", message: "Введите название трекера", preferredStyle: .alert)
+             alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+             self.present(alert, animated: true, completion: nil)
+             return
+         }
         
-        guard let selectedEmoji = selectedEmoji else {
-            let alert = UIAlertController(title: "Ошибка", message: "Выберите эмоджи", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
-            self.present(alert, animated: true, completion: nil)
-            return
-        }
+         guard let selectedEmoji = selectedEmoji else {
+                 let alert = UIAlertController(title: "Ошибка", message: "Выберите эмоджи", preferredStyle: .alert)
+                 alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+                 self.present(alert, animated: true, completion: nil)
+                 return
+             }
+             
+             guard let selectedColor = selectedColor else {
+                 let alert = UIAlertController(title: "Ошибка", message: "Выберите цвет", preferredStyle: .alert)
+                 alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
+                 
+                 self.present(alert, animated: true, completion: nil)
+                 return
+             }
         
-        guard let selectedColor = selectedColor else {
-            let alert = UIAlertController(title: "Ошибка", message: "Выберите цвет", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
-            
-            self.present(alert, animated: true, completion: nil)
-            return
-        }
-        
-        guard let trackerStore = trackerStore else {
-            fatalError("trackerStore is nil")
-        }
-        
-        let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
-        // НАДО МНЕ УВЕДОМЛЯТЬ ДЕЛЕГАТ ИЛИ НЕТ?
-        delegate?.didCreateTracker(tracker: tracker)
-        dismiss(animated: true, completion: nil)
-        
-    }
-}
+         guard let trackerStore = trackerStore else {
+                   fatalError("trackerStore is nil")
+               }
+               
+               let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
+               // НАДО МНЕ УВЕДОМЛЯТЬ ДЕЛЕГАТ ИЛИ НЕТ?
+               delegate?.didCreateTracker(tracker: tracker)
+               dismiss(animated: true, completion: nil)
+               
+           }
+       }
 

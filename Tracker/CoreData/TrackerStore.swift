@@ -41,11 +41,12 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     private func setupFetchedResultsController() {
         do {
             try fetchedResultsController.performFetch()
+            print("Fetched results controller performed fetch successfully")
         } catch {
             print("Failed to initialize FetchedResultsController: \(error)")
         }
     }
-    
+
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker {
         let tracker = TrackerCoreData(context: context)
         tracker.id = id
@@ -53,6 +54,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         tracker.color = color
         tracker.emoji = emoji
         tracker.schedule = schedule as NSObject
+        print("Tracker created: \(name)")
         saveContext()
         CoreDataManager.shared.saveContext()
         return Tracker(trackerCoreData: tracker)
@@ -64,17 +66,26 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     }
     
     func saveContext() {
-        do {
-            try context.save()
-        } catch {
-            print("Failed to save context: \(error)")
+        if context.hasChanges {
+            do {
+                try context.save()
+                print("Context saved successfully")
+            } catch {
+                print("Failed to save context: \(error)")
+            }
+        } else {
+            print("No changes in context to save")
         }
     }
+
     
     func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        print("Fetched results controller did change content")
         let trackers = fetchedResultsController.fetchedObjects?.map { Tracker(trackerCoreData: $0) } ?? []
+        print("Loaded \(trackers.count) trackers")
         delegate?.didChangeTrackers(trackers: trackers)
     }
+
 }
 
 extension Tracker {

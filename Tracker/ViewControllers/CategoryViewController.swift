@@ -1,28 +1,49 @@
-
 import UIKit
 
 protocol CategoryViewControllerDelegate {
     func didSelectCategory(_ category: TrackerCategory)
 }
 
-class CategoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+final class CategoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
     var categories: [TrackerCategory] = []
     private let tableView = UITableView()
     private let emptyImageView = UIImageView()
     private let emptyLabel = UILabel()
     private let addButton = UIButton()
+    private let categoryTitleLabel = UILabel()
+    private var trackerCategoryStore: TrackerCategoryStore?
+
+    
+    
     var delegate: CategoryViewControllerDelegate?
-    var defaultCategory = TrackerCategory(title: "Общая", trackers: [])
+    
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
+        trackerCategoryStore = TrackerCategoryStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+        loadCategories()
+        updateUIForEmptyState()
+        
     }
     
+    var viewModel: CategoriesViewModel? {
+         didSet {
+             viewModel?.updateView = { [weak self] in
+                 DispatchQueue.main.async {
+                     print("Обновление таблицы с категориями: \(self?.viewModel?.categories)")
+                     self?.tableView.reloadData()
+                     self?.updateUIForEmptyState()
+                 }
+             }
+         }
+     }
+    
     func setupUI() {
-        
+
         view.backgroundColor = .white
         
         tableView.delegate = self
@@ -33,9 +54,17 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         tableView.layer.cornerRadius = 16
         view.addSubview(tableView)
         
+        
         emptyImageView.contentMode = .scaleAspectFit
         emptyImageView.image = UIImage(named: "zaglishka")
         view.addSubview(emptyImageView)
+        
+        
+        categoryTitleLabel.text = "Категория"
+        categoryTitleLabel.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+        categoryTitleLabel.textAlignment = .center
+        view.addSubview(categoryTitleLabel)
+        
         
         // Empty Label
         emptyLabel.textAlignment = .center
@@ -45,7 +74,7 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         view.addSubview(emptyLabel)
         
         // Add Button
-        addButton.setTitle("Добавить", for: .normal)
+        addButton.setTitle("Добавить категорию", for: .normal)
         addButton.addTarget(self, action: #selector(addCategory), for: .touchUpInside)
         addButton.backgroundColor = .black
         addButton.layer.cornerRadius = 16
@@ -58,12 +87,13 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
         emptyImageView.translatesAutoresizingMaskIntoConstraints = false
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
         addButton.translatesAutoresizingMaskIntoConstraints = false
+        categoryTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.heightAnchor.constraint(equalToConstant: 75),
+            tableView.heightAnchor.constraint(equalToConstant: 675),
             
             emptyImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             emptyImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -76,32 +106,59 @@ class CategoryViewController: UIViewController, UITableViewDelegate, UITableView
             addButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16),
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            categoryTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            categoryTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            categoryTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
-        if categories.isEmpty {
-            categories.append(defaultCategory)
+      
+        updateUIForEmptyState()
+        
+    }
+    
+    func updateUIForEmptyState() {
+           let isEmpty = viewModel?.categories.isEmpty ?? true
+           print("Текущее состояние isEmpty: \(isEmpty)")
+           tableView.isHidden = isEmpty
+           emptyImageView.isHidden = !isEmpty
+           emptyLabel.isHidden = !isEmpty
+       }
+       
+    func loadCategories() {
+            guard let viewModel = viewModel, let trackerCategoryStore = trackerCategoryStore else {
+                return
+            }
+            viewModel.categories = trackerCategoryStore.fetchAllCategories()
         }
-        
-        tableView.isHidden = false
-        emptyImageView.isHidden = true
-        emptyLabel.isHidden = true
-        
-        
-    }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return categories.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-        cell.textLabel?.text = categories[indexPath.row].title
-        return cell
-    }
-    
-    @objc private func addCategory() {
-        let selectedCategory = defaultCategory
-        delegate?.didSelectCategory(selectedCategory)
-        self.navigationController?.popViewController(animated: true)
-    }
-    
-}
+
+
+       func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+           return viewModel?.categories.count ?? 0
+       }
+
+       func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+           let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+           if let categoryName = viewModel?.categories[indexPath.row].title {
+               print("Имя категории: \(categoryName)")
+               cell.textLabel?.text = categoryName
+           } else {
+               print("Имя категории отсутствует")
+               cell.textLabel?.text = nil
+           }
+           
+           return cell
+       }
+       
+       @objc private func addCategory() {
+           print("Добавляем новую категорию")
+           let newCategoryVC = NewCategoryViewController()
+           newCategoryVC.viewModel = self.viewModel
+           navigationController?.pushViewController(newCategoryVC, animated: true)
+       }
+       
+       override func viewDidAppear(_ animated: Bool) {
+           super.viewDidAppear(animated)
+           updateUIForEmptyState()
+       }
+
+   }

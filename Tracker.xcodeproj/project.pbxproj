@@ -31,6 +31,8 @@
 		CCD7BB2E2ADC56640074343F /* OnboardingPageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD7BB2D2ADC56640074343F /* OnboardingPageViewController.swift */; };
 		CCD7BB302ADC56DD0074343F /* OnboardingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD7BB2F2ADC56DD0074343F /* OnboardingViewController.swift */; };
 		CCD7BB322ADC57930074343F /* OnboardingPageModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD7BB312ADC57930074343F /* OnboardingPageModel.swift */; };
+		CCD7BB342AE688910074343F /* CategoriesModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD7BB332AE688910074343F /* CategoriesModel.swift */; };
+		CCD7BB382AE68ABD0074343F /* NewCategoryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCD7BB372AE68ABD0074343F /* NewCategoryViewController.swift */; };
 		CCF94E832AD03B8200AFDCE8 /* CoreDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCF94E822AD03B8200AFDCE8 /* CoreDataManager.swift */; };
 		CCF94E852AD041CC00AFDCE8 /* UIColorValueTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCF94E842AD041CC00AFDCE8 /* UIColorValueTransformer.swift */; };
 		CCF94E872AD0443000AFDCE8 /* ScheduleValueTransformer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCF94E862AD0443000AFDCE8 /* ScheduleValueTransformer.swift */; };
@@ -63,6 +65,8 @@
 		CCD7BB2D2ADC56640074343F /* OnboardingPageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPageViewController.swift; sourceTree = "<group>"; };
 		CCD7BB2F2ADC56DD0074343F /* OnboardingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewController.swift; sourceTree = "<group>"; };
 		CCD7BB312ADC57930074343F /* OnboardingPageModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPageModel.swift; sourceTree = "<group>"; };
+		CCD7BB332AE688910074343F /* CategoriesModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CategoriesModel.swift; sourceTree = "<group>"; };
+		CCD7BB372AE68ABD0074343F /* NewCategoryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewCategoryViewController.swift; sourceTree = "<group>"; };
 		CCF94E822AD03B8200AFDCE8 /* CoreDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreDataManager.swift; sourceTree = "<group>"; };
 		CCF94E842AD041CC00AFDCE8 /* UIColorValueTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UIColorValueTransformer.swift; sourceTree = "<group>"; };
 		CCF94E862AD0443000AFDCE8 /* ScheduleValueTransformer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleValueTransformer.swift; sourceTree = "<group>"; };
@@ -84,6 +88,7 @@
 			children = (
 				CCBBA1F12A9914C10054174F /* TrackerModals.swift */,
 				CCD7BB312ADC57930074343F /* OnboardingPageModel.swift */,
+				CCD7BB332AE688910074343F /* CategoriesModel.swift */,
 			);
 			path = Modals;
 			sourceTree = "<group>";
@@ -92,12 +97,13 @@
 			isa = PBXGroup;
 			children = (
 				CCBBA1F32A9923540054174F /* TrackerCreationViewController.swift */,
-				CCD3C6022AA2524E00B5804C /* CategoryViewController.swift */,
 				CCBBA1EF2A979E700054174F /* SelectionViewController.swift */,
 				CCBBA1ED2A978BF50054174F /* TrackersViewController.swift */,
 				CCBBA1F52A9923800054174F /* ScheduleSettingViewController.swift */,
 				CCD7BB2D2ADC56640074343F /* OnboardingPageViewController.swift */,
 				CCD7BB2F2ADC56DD0074343F /* OnboardingViewController.swift */,
+				CCD3C6022AA2524E00B5804C /* CategoryViewController.swift */,
+				CCD7BB372AE68ABD0074343F /* NewCategoryViewController.swift */,
 			);
 			path = ViewControllers;
 			sourceTree = "<group>";
@@ -253,10 +259,12 @@
 				CCBA8C402AC6F44E009C30FB /* TrackerRecordStore.swift in Sources */,
 				CCBBA1F82A9B71B80054174F /* TrackerCell.swift in Sources */,
 				CCBBA1E92A9783EA0054174F /* UIColor+Extentions.swift in Sources */,
+				CCD7BB342AE688910074343F /* CategoriesModel.swift in Sources */,
 				CCBBA1F22A9914C10054174F /* TrackerModals.swift in Sources */,
 				CCB756F72A9E02DE007DC0FF /* EmojiCollectionView.swift in Sources */,
 				CCD7BB2E2ADC56640074343F /* OnboardingPageViewController.swift in Sources */,
 				CCBBA1D52A976EAE0054174F /* AppDelegate.swift in Sources */,
+				CCD7BB382AE68ABD0074343F /* NewCategoryViewController.swift in Sources */,
 				CCBBA1F42A9923540054174F /* TrackerCreationViewController.swift in Sources */,
 				CCBBA1EC2A978BAD0054174F /* TabBarController.swift in Sources */,
 				CCB756FB2A9E21FC007DC0FF /* ColorCollectionViewCell.swift in Sources */,

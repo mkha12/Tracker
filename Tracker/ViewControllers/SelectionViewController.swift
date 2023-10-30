@@ -34,7 +34,7 @@ final class TrackerTypeSelectionViewController: UIViewController, CreateTrackerD
     let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Создание трекера"
-        label.font = UIFont.systemFont(ofSize: 16, weight: .medium) 
+        label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.textAlignment = .center
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
