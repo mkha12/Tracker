@@ -68,18 +68,28 @@ final class NewCategoryViewController: UIViewController {
         ])
     }
     
-        
-    @objc private func doneButtonTapped() {
-           if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
-               print("Создаем категорию с именем: \(categoryName)")
-               let context = CoreDataManager.shared.persistentContainer.viewContext
-               let trackerCategoryStore = TrackerCategoryStore(context: context)
-               _ = trackerCategoryStore.createCategory(title: categoryName, trackers: []) 
-               navigationController?.popViewController(animated: true)
+    
+        @objc private func doneButtonTapped() {
+               if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
+                   print("Создаем категорию с именем: \(categoryName)")
+                   let context = CoreDataManager.shared.persistentContainer.viewContext
+                   let trackerCategoryStore = TrackerCategoryStore(context: context)
+                   _ = trackerCategoryStore.createCategory(title: categoryName, trackers: [])
+                   navigationController?.popViewController(animated: true)
+               }
            }
-       }
     
+    
+//    @objc private func doneButtonTapped() {
+//        if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
+//            print("Создаем категорию с именем: \(categoryName)")
+//            let context = CoreDataManager.shared.persistentContainer.viewContext
+//            let trackerCategoryStore = TrackerCategoryStore(context: context)
+//            _ = trackerCategoryStore.createCategory(title: categoryName, trackers: [])
+//            if let categoryVC = navigationController?.viewControllers.first(where: { $0 is CategoryViewController }) as? CategoryViewController {
+//                categoryVC.loadCategories()
+//            }
+//            navigationController?.popViewController(animated: true)
+//        }
+
 }
-    
-
-

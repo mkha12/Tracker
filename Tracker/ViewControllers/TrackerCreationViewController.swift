@@ -1,8 +1,9 @@
 import UIKit
 
-protocol CreateTrackerDelegate {
-    func didCreateTracker(tracker: Tracker)
+ protocol CreateTrackerDelegate {
+     func didCreateTracker(tracker: Tracker)
 }
+
 
 
 final class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, ColorSelectionDelegate, EmojiSelectionDelegate,ScheduleSettingViewControllerDelegate, CategoryViewControllerDelegate {

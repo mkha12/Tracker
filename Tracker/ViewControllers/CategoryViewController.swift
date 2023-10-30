@@ -14,8 +14,6 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     private let categoryTitleLabel = UILabel()
     private var trackerCategoryStore: TrackerCategoryStore?
 
-    
-    
     var delegate: CategoryViewControllerDelegate?
     
     
@@ -148,6 +146,17 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
            
            return cell
        }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let selectedCategory = viewModel?.categories[indexPath.row] {
+            delegate?.didSelectCategory(selectedCategory)
+            navigationController?.popViewController(animated: true)
+        } else {
+            // Обрабатываем случай, когда категория по каким-то причинам не была найдена
+            print("Категория не найдена")
+        }
+    }
+
        
        @objc private func addCategory() {
            print("Добавляем новую категорию")

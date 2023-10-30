@@ -198,27 +198,63 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             collectionView.reloadData()
         }
         
+//    private func filterVisibleCategories() {
+//        print("Текущий день недели: \(currentDate.weekday)")
+//           if let query = searchBar.text, !query.isEmpty {
+//               visibleCategories = categories.map { category in
+//                   let filteredTrackers = category.trackers.filter { tracker in
+//                       return tracker.name.lowercased().contains(query.lowercased()) && (tracker.schedule?[currentDate.weekday] ?? false)
+//                   }
+//                   return TrackerCategory(title: category.title, trackers: filteredTrackers)
+//               }.filter { !$0.trackers.isEmpty }
+//           } else {
+//               visibleCategories = categories.map { category in
+//                   let filteredTrackers = category.trackers.filter { tracker in
+//                       return tracker.schedule?[currentDate.weekday] ?? false
+//                   }
+//                   return TrackerCategory(title: category.title, trackers: filteredTrackers)
+//               }.filter { !$0.trackers.isEmpty }
+//           }
+//           updateEmptyTrackersVisibility()
+//        print("Видимых категорий после фильтрации: \(visibleCategories.count)")
+//           collectionView.reloadData()
+//       }
     private func filterVisibleCategories() {
-           if let query = searchBar.text, !query.isEmpty {
-               visibleCategories = categories.map { category in
-                   let filteredTrackers = category.trackers.filter { tracker in
-                       return tracker.name.lowercased().contains(query.lowercased()) && (tracker.schedule?[currentDate.weekday] ?? false)
-                   }
-                   return TrackerCategory(title: category.title, trackers: filteredTrackers)
-               }.filter { !$0.trackers.isEmpty }
-           } else {
-               visibleCategories = categories.map { category in
-                   let filteredTrackers = category.trackers.filter { tracker in
-                       return tracker.schedule?[currentDate.weekday] ?? false
-                   }
-                   return TrackerCategory(title: category.title, trackers: filteredTrackers)
-               }.filter { !$0.trackers.isEmpty }
-           }
-           updateEmptyTrackersVisibility()
+        print("Текущий день недели: \(currentDate.weekday)")
+
+        // Выводим содержимое categories перед фильтрацией
+        print("Categories перед фильтрацией: \(categories)")
+
+        if let query = searchBar.text, !query.isEmpty {
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { tracker in
+                    let isNameMatching = tracker.name.lowercased().contains(query.lowercased())
+                    let isScheduledToday = tracker.schedule?[currentDate.weekday] ?? false
+                    print("Tracker: \(tracker.name), isNameMatching: \(isNameMatching), isScheduledToday: \(isScheduledToday)") // Выводим информацию о каждом трекере
+                    return isNameMatching && isScheduledToday
+                }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
+        } else {
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { tracker in
+                    let isScheduledToday = tracker.schedule?[currentDate.weekday] ?? false
+                    print("Tracker: \(tracker.name), isScheduledToday: \(isScheduledToday)") // Выводим информацию о каждом трекере
+                    return isScheduledToday
+                }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
+        }
+
+        // Выводим visibleCategories после фильтрации
+        print("Visible categories после фильтрации: \(visibleCategories)")
+
+        updateEmptyTrackersVisibility()
         print("Видимых категорий после фильтрации: \(visibleCategories.count)")
-           collectionView.reloadData()
-       }
-        
+        collectionView.reloadData()
+    }
+
+ 
     func updateEmptyTrackersVisibility() {
             let isSearchActive = !(searchBar.text ?? "").isEmpty
             let noTrackersAvailable = visibleCategories.isEmpty
@@ -255,18 +291,31 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         trackerRecords = recordStore.fetchAllRecords()
     }
 
+//    func updateCategories() {
+//        guard let fetchedCategories = categoryStore?.fetchAllCategories() else {
+//            print("Error: fetchedCategories is nil")
+//            return
+//        }
+//        
+//        var newCategories = [TrackerCategory]()
+//        categories = newCategories
+//        print("Обновлено категорий: \(categories.count)")
+//        filterVisibleCategories()
+//        collectionView.reloadData()
+//    }
+    
     func updateCategories() {
         guard let fetchedCategories = categoryStore?.fetchAllCategories() else {
             print("Error: fetchedCategories is nil")
             return
         }
         
-        var newCategories = [TrackerCategory]()
-        categories = newCategories
+        categories = fetchedCategories
         print("Обновлено категорий: \(categories.count)")
         filterVisibleCategories()
         collectionView.reloadData()
     }
+
 
     }
     
