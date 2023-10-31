@@ -134,7 +134,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
            let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
            if let categoryName = viewModel?.categories[indexPath.row].title {
                cell.textLabel?.text = categoryName
-           } else {)
+           } else {
                cell.textLabel?.text = nil
            }
            
