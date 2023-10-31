@@ -74,5 +74,3 @@ extension TrackerRecord {
         self.date = recordCoreData.date ?? Date()
     }
 }
-
-

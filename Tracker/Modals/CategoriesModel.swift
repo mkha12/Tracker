@@ -17,13 +17,11 @@ final class CategoriesViewModel {
     
     func addCategory(_ category: TrackerCategory) {
         categories.append(category)
-        print("Категория добавлена: \(category)")
     }
     
 }
 extension CategoriesViewModel: TrackerCategoryStoreDelegate {
     func didChangeCategories(categories: [TrackerCategory]) {
         self.categories = categories
-        print("Категории обновлены: \(categories)")
     }
 }

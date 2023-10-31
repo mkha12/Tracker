@@ -24,7 +24,7 @@ final class OnboardingPageController: UIViewController {
         button.addTarget(self, action: #selector(handleContinue), for: .touchUpInside)
         return button
     }()
-
+    
     
     func updateUI() {
         imageView.image = page?.image
@@ -51,32 +51,32 @@ final class OnboardingPageController: UIViewController {
             UIApplication.shared.windows.first?.makeKeyAndVisible()
         }
     }
-
-
+    
+    
     
     func setupUI() {
         // ImageView
         imageView.translatesAutoresizingMaskIntoConstraints = false
-           imageView.contentMode = .scaleAspectFill
+        imageView.contentMode = .scaleAspectFill
         imageView.isUserInteractionEnabled = true
-           imageView.clipsToBounds = true
-           view.addSubview(imageView)
+        imageView.clipsToBounds = true
+        view.addSubview(imageView)
         
         // TitleLabel
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.numberOfLines = 2
-          titleLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
-          titleLabel.textColor = .blackDay
-          titleLabel.textAlignment = .center
-          view.addSubview(titleLabel)
+        titleLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        titleLabel.textColor = .blackDay
+        titleLabel.textAlignment = .center
+        view.addSubview(titleLabel)
         
         // DescriptionLabel
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
-           descriptionLabel.font = UIFont.systemFont(ofSize: 16)
-           descriptionLabel.numberOfLines = 0
-           descriptionLabel.textColor = .white
-           descriptionLabel.textAlignment = .center
-           view.addSubview(descriptionLabel)
+        descriptionLabel.font = UIFont.systemFont(ofSize: 16)
+        descriptionLabel.numberOfLines = 0
+        descriptionLabel.textColor = .white
+        descriptionLabel.textAlignment = .center
+        view.addSubview(descriptionLabel)
         
         
         view.addSubview(continueButton)
@@ -85,8 +85,6 @@ final class OnboardingPageController: UIViewController {
         continueButton.setTitleColor(.white, for: .normal)
         continueButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         
-        
-        // AutoLayout
         NSLayoutConstraint.activate([
             
             imageView.topAnchor.constraint(equalTo: view.topAnchor),
@@ -111,5 +109,3 @@ final class OnboardingPageController: UIViewController {
         ])
     }
 }
-
-

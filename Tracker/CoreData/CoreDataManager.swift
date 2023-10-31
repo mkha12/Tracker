@@ -11,11 +11,11 @@ final class CoreDataManager {
                 print("Failed to load persistent stores: \(error), \(error.userInfo)")
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             } else {
-                        print("Persistent store loaded successfully")
-                    }
-                }
-                return container
-            }()
+                print("Persistent store loaded successfully")
+            }
+        }
+        return container
+    }()
     
     private init() {}
     

@@ -146,7 +146,7 @@ extension ScheduleSettingViewController: UITableViewDataSource, UITableViewDeleg
             cell.textLabel?.text = day.rawValue
         }
         cell.selectionStyle = .none
-
+        
         return cell
     }
 }

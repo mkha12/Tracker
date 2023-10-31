@@ -1,8 +1,15 @@
 import UIKit
 
+protocol NewCategoryViewControllerDelegate: AnyObject {
+    func newCategoryViewController(_ controller: NewCategoryViewController, didCreateNewCategory category: TrackerCategory)
+}
+
+
 final class NewCategoryViewController: UIViewController {
     
     var viewModel: CategoriesViewModel?
+    weak var delegate: NewCategoryViewControllerDelegate?
+
     
     private let categoryNameTextField = UITextField()
     private let doneButton = UIButton()
@@ -50,7 +57,6 @@ final class NewCategoryViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             
-            
             categoryNameTextField.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 20),
             categoryNameTextField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             categoryNameTextField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
@@ -68,28 +74,14 @@ final class NewCategoryViewController: UIViewController {
         ])
     }
     
-    
-        @objc private func doneButtonTapped() {
-               if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
-                   print("Создаем категорию с именем: \(categoryName)")
-                   let context = CoreDataManager.shared.persistentContainer.viewContext
-                   let trackerCategoryStore = TrackerCategoryStore(context: context)
-                   _ = trackerCategoryStore.createCategory(title: categoryName, trackers: [])
-                   navigationController?.popViewController(animated: true)
-               }
-           }
-    
-    
-//    @objc private func doneButtonTapped() {
-//        if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
-//            print("Создаем категорию с именем: \(categoryName)")
-//            let context = CoreDataManager.shared.persistentContainer.viewContext
-//            let trackerCategoryStore = TrackerCategoryStore(context: context)
-//            _ = trackerCategoryStore.createCategory(title: categoryName, trackers: [])
-//            if let categoryVC = navigationController?.viewControllers.first(where: { $0 is CategoryViewController }) as? CategoryViewController {
-//                categoryVC.loadCategories()
-//            }
-//            navigationController?.popViewController(animated: true)
-//        }
-
+    @objc private func doneButtonTapped() {
+        if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
+            print("Создаем категорию с именем: \(categoryName)")
+            let context = CoreDataManager.shared.persistentContainer.viewContext
+            let trackerCategoryStore = TrackerCategoryStore(context: context)
+            let newCategory = trackerCategoryStore.createCategory(title: categoryName, trackers: [])
+            delegate?.newCategoryViewController(self, didCreateNewCategory: newCategory)
+            navigationController?.popViewController(animated: true)
+        }
+    }
 }

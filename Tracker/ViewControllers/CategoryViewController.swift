@@ -16,8 +16,6 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
 
     var delegate: CategoryViewControllerDelegate?
     
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
@@ -32,7 +30,6 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
          didSet {
              viewModel?.updateView = { [weak self] in
                  DispatchQueue.main.async {
-                     print("Обновление таблицы с категориями: \(self?.viewModel?.categories)")
                      self?.tableView.reloadData()
                      self?.updateUIForEmptyState()
                  }
@@ -116,7 +113,6 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     
     func updateUIForEmptyState() {
            let isEmpty = viewModel?.categories.isEmpty ?? true
-           print("Текущее состояние isEmpty: \(isEmpty)")
            tableView.isHidden = isEmpty
            emptyImageView.isHidden = !isEmpty
            emptyLabel.isHidden = !isEmpty
@@ -137,10 +133,8 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
            let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
            if let categoryName = viewModel?.categories[indexPath.row].title {
-               print("Имя категории: \(categoryName)")
                cell.textLabel?.text = categoryName
-           } else {
-               print("Имя категории отсутствует")
+           } else {)
                cell.textLabel?.text = nil
            }
            
@@ -152,18 +146,18 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
             delegate?.didSelectCategory(selectedCategory)
             navigationController?.popViewController(animated: true)
         } else {
-            // Обрабатываем случай, когда категория по каким-то причинам не была найдена
             print("Категория не найдена")
         }
     }
 
-       
-       @objc private func addCategory() {
-           print("Добавляем новую категорию")
-           let newCategoryVC = NewCategoryViewController()
-           newCategoryVC.viewModel = self.viewModel
-           navigationController?.pushViewController(newCategoryVC, animated: true)
-       }
+    
+    @objc private func addCategory() {
+        let newCategoryVC = NewCategoryViewController()
+        newCategoryVC.delegate = self
+        newCategoryVC.viewModel = self.viewModel
+        navigationController?.pushViewController(newCategoryVC, animated: true)
+    }
+
        
        override func viewDidAppear(_ animated: Bool) {
            super.viewDidAppear(animated)
@@ -171,3 +165,10 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
        }
 
    }
+extension CategoryViewController: NewCategoryViewControllerDelegate {
+    func newCategoryViewController(_ controller: NewCategoryViewController, didCreateNewCategory category: TrackerCategory) {
+        viewModel?.categories.append(category)
+        tableView.reloadData()
+        updateUIForEmptyState()
+    }
+}

@@ -5,5 +5,3 @@ struct OnboardingPage {
     let description: String
     let image: UIImage
 }
-
-
