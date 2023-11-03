@@ -12,6 +12,8 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     private let emptyLabel = UILabel()
     private let addButton = UIButton()
     private let categoryTitleLabel = UILabel()
+    var selectedIndexPath: IndexPath?
+
 
     var delegate: CategoryViewControllerDelegate?
 
@@ -140,19 +142,35 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
            cell.layer.cornerRadius = 8
            cell.accessoryType = .disclosureIndicator
            cell.clipsToBounds = true
+           cell.accessoryType = .none
+           
+           if let selectedIndexPath = selectedIndexPath, selectedIndexPath == indexPath {
+                   cell.accessoryView = UIImageView(image: UIImage(named: "galochka"))
+               } else {
+                   cell.accessoryView = nil
+               }
                
            return cell
        }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let selectedIndexPath = selectedIndexPath {
+            tableView.cellForRow(at: selectedIndexPath)?.accessoryView = nil
+        
+        }
+
+        selectedIndexPath = indexPath
+        tableView.cellForRow(at: indexPath)?.accessoryView = UIImageView(image: UIImage(named: "galochka"))
+
         if let selectedCategory = viewModel?.categories[indexPath.row] {
             delegate?.didSelectCategory(selectedCategory)
             dismiss(animated: true, completion: nil)
-
         } else {
             print("Категория не найдена")
         }
+        tableView.deselectRow(at: indexPath, animated: true)
     }
+
 
     
     @objc private func addCategory() {

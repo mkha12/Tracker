@@ -408,12 +408,12 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             self.present(alert, animated: true, completion: nil)
             return
         }
-        
+        print("Save button tapped")
         guard let trackerStore = trackerStore else {
             fatalError("trackerStore is nil")
         }
         
-        
+        print("Save button tapped")
         let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
         
     

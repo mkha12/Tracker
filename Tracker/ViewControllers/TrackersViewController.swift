@@ -264,7 +264,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         collectionView.reloadData()
     }
     
-    
 }
 
 extension TrackersViewController {
