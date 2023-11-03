@@ -2,7 +2,6 @@ import UIKit
 
 final class TrackersViewController: UIViewController, UICollectionViewDataSource, CreateTrackerDelegate {
     
-    
     var datePicker: UIDatePicker!
     var searchBar: UISearchTextField!
     var collectionView: UICollectionView!
@@ -129,10 +128,12 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             
-            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 34),
-            collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 0),
+            collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
+            collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
+            collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            //не спрашивайте зачем тут 12, это я вычла 8 из тех отступов, что есть внутри самих ячеек)))
+
             
             separatorView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             separatorView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
@@ -170,12 +171,11 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }
     }
     
-    func didCreateTracker(tracker: Tracker) {
-        addNewTracker(tracker, toCategory: "Общая")
+    func didCreateTracker(tracker: Tracker, categoryName: String) {
+        addNewTracker(tracker, toCategory: categoryName)
         collectionView.reloadData()
     }
-    
-    
+
     @objc func presentAddNewTrackerScreen() {
         let trackerTypeSelectionVC = TrackerTypeSelectionViewController()
         trackerTypeSelectionVC.delegate = self
@@ -303,12 +303,13 @@ extension TrackersViewController {
         return cell
     }
     
-    
     private func handleAddButtonTap(for tracker: Tracker) {
         if currentDate > Date() { return }
-        
+
         let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
-        if completedTrackers.contains(tracker.id) {
+
+        if recordStore.recordExistsFor(trackerId: tracker.id, date: currentDate) {
+            recordStore.removeRecordFor(trackerId: tracker.id, date: currentDate)
             completedTrackers.remove(tracker.id)
         } else {
             completedTrackers.insert(tracker.id)
@@ -316,7 +317,8 @@ extension TrackersViewController {
         }
         loadTrackers()
     }
-    
+
+
     
     func countDays(for trackerId: UUID) -> Int {
         return trackerRecords.filter { $0.trackerId == trackerId }.count

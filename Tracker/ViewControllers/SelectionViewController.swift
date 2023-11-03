@@ -75,8 +75,9 @@ final class TrackerTypeSelectionViewController: UIViewController, CreateTrackerD
         irregularEventButton.addTarget(self, action: #selector(irregularEventTapped), for: .touchUpInside)
     }
     
-    func didCreateTracker(tracker: Tracker) {
-        delegate?.didCreateTracker(tracker: tracker)
+    func didCreateTracker(tracker: Tracker, categoryName: String) {
+        delegate?.didCreateTracker(tracker: tracker, categoryName: categoryName)
+    
         
     }
     

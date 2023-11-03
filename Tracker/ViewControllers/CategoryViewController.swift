@@ -12,30 +12,35 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     private let emptyLabel = UILabel()
     private let addButton = UIButton()
     private let categoryTitleLabel = UILabel()
-    private var trackerCategoryStore: TrackerCategoryStore?
 
     var delegate: CategoryViewControllerDelegate?
+
+        
+        var viewModel: CategoriesViewModel? {
+            didSet {
+                viewModel?.updateView = { [weak self] in
+                    DispatchQueue.main.async {
+                        self?.tableView.reloadData()
+                        self?.updateUIForEmptyState()
+                    }
+                }
+            }
+        }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "CategoryCell")
-        trackerCategoryStore = TrackerCategoryStore(context: CoreDataManager.shared.persistentContainer.viewContext)
-        loadCategories()
-        updateUIForEmptyState()
         
+        viewModel = CategoriesViewModel()
+        viewModel?.updateView = { [weak self] in
+            DispatchQueue.main.async {
+                self?.tableView.reloadData()
+                self?.updateUIForEmptyState()
+            }
+            
+        }
     }
-    
-    var viewModel: CategoriesViewModel? {
-         didSet {
-             viewModel?.updateView = { [weak self] in
-                 DispatchQueue.main.async {
-                     self?.tableView.reloadData()
-                     self?.updateUIForEmptyState()
-                 }
-             }
-         }
-     }
     
     func setupUI() {
 
@@ -43,8 +48,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         
         tableView.delegate = self
         tableView.dataSource = self
-        tableView.separatorStyle = .none
-        tableView.isScrollEnabled = false
+        tableView.isScrollEnabled = true
         tableView.rowHeight = 75
         tableView.layer.cornerRadius = 16
         view.addSubview(tableView)
@@ -88,7 +92,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            tableView.heightAnchor.constraint(equalToConstant: 675),
+            tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
             
             emptyImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             emptyImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
@@ -117,14 +121,6 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
            emptyImageView.isHidden = !isEmpty
            emptyLabel.isHidden = !isEmpty
        }
-       
-    func loadCategories() {
-            guard let viewModel = viewModel, let trackerCategoryStore = trackerCategoryStore else {
-                return
-            }
-            viewModel.categories = trackerCategoryStore.fetchAllCategories()
-        }
-
 
        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
            return viewModel?.categories.count ?? 0
@@ -138,13 +134,21 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
                cell.textLabel?.text = nil
            }
            
+           cell.backgroundColor = UIColor.backgroundDay
+           cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
+           cell.textLabel?.backgroundColor = UIColor.clear
+           cell.layer.cornerRadius = 8
+           cell.accessoryType = .disclosureIndicator
+           cell.clipsToBounds = true
+               
            return cell
        }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let selectedCategory = viewModel?.categories[indexPath.row] {
             delegate?.didSelectCategory(selectedCategory)
-            navigationController?.popViewController(animated: true)
+            dismiss(animated: true, completion: nil)
+
         } else {
             print("Категория не найдена")
         }
@@ -156,6 +160,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         newCategoryVC.delegate = self
         newCategoryVC.viewModel = self.viewModel
         navigationController?.pushViewController(newCategoryVC, animated: true)
+        //present(newCategoryVC, animated: true, completion: nil)
     }
 
        

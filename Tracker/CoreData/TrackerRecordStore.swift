@@ -52,6 +52,34 @@ final class TrackerRecordStore: NSObject {
         return fetchedObjects.map { TrackerRecord(recordCoreData: $0) }
     }
     
+    func recordExistsFor(trackerId: UUID, date: Date) -> Bool {
+        let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "trackerId == %@ AND date >= %@ AND date < %@", trackerId as CVarArg, date.startOfDay as CVarArg, date.endOfDay as CVarArg)
+        
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count > 0
+        } catch {
+            print("Failed to count TrackerRecordCoreData: \(error)")
+            return false
+        }
+    }
+
+    func removeRecordFor(trackerId: UUID, date: Date) {
+        let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "trackerId == %@ AND date >= %@ AND date < %@", trackerId as CVarArg, date.startOfDay as CVarArg, date.endOfDay as CVarArg)
+        
+        do {
+            let records = try context.fetch(fetchRequest)
+            for record in records {
+                context.delete(record)
+            }
+            saveContext()
+        } catch {
+            print("Failed to fetch or delete TrackerRecordCoreData: \(error)")
+        }
+    }
+    
     func saveContext() {
         do {
             try context.save()
@@ -59,6 +87,7 @@ final class TrackerRecordStore: NSObject {
             print("Failed to save context: \(error)")
         }
     }
+    
 }
 
 extension TrackerRecordStore: NSFetchedResultsControllerDelegate {
@@ -72,5 +101,15 @@ extension TrackerRecord {
     init(recordCoreData: TrackerRecordCoreData) {
         self.trackerId = recordCoreData.trackerId ?? UUID()
         self.date = recordCoreData.date ?? Date()
+    }
+}
+extension Date {
+    var startOfDay: Date {
+        return Calendar.current.startOfDay(for: self)
+    }
+    
+    var endOfDay: Date {
+        let components = DateComponents(day: 1, second: -1)
+        return Calendar.current.date(byAdding: components, to: startOfDay)!
     }
 }

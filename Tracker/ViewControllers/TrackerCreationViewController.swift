@@ -1,10 +1,8 @@
 import UIKit
 
 protocol CreateTrackerDelegate {
-    func didCreateTracker(tracker: Tracker)
+    func didCreateTracker(tracker: Tracker, categoryName: String)
 }
-
-
 
 final class TrackerCreationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, ColorSelectionDelegate, EmojiSelectionDelegate,ScheduleSettingViewControllerDelegate, CategoryViewControllerDelegate {
     
@@ -282,6 +280,8 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         return cell
     }
     
+    
+    
     func attributedString(for title: String, detail: String?) -> NSAttributedString {
         let titleAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.black]
         let detailAttributes: [NSAttributedString.Key: Any] = [.foregroundColor: UIColor.gray]
@@ -314,7 +314,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         let categoryCellIndexPath = IndexPath(row: 0, section: 0)
         categoryCell.textLabel?.text = category.title
         categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
-        //tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
         tableView.reloadRows(at: [categoryCellIndexPath], with: .none)
         updateCreateButtonState()
     }
@@ -340,25 +339,31 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         
         tableView.deselectRow(at: indexPath, animated: true)
         if isHabit {
-            if indexPath.row == 0 {
-                let categorySelectionVC = CategoryViewController()
-                categorySelectionVC.viewModel = self.categoriesViewModel // Передаём модель
-                categorySelectionVC.delegate = self
-                self.navigationController?.pushViewController(categorySelectionVC, animated: true)
-                
-            } else if indexPath.row == 1 {
-                let scheduleSelectionVC = ScheduleSettingViewController()
-                scheduleSelectionVC.selectedDays = self.selectedSchedule ?? [:]
-                scheduleSelectionVC.delegate = self
-                self.navigationController?.pushViewController(scheduleSelectionVC, animated: true)
-            }
-            
-        } else {
-            let categorySelectionVC = CategoryViewController()
-            categorySelectionVC.viewModel = self.categoriesViewModel
-            categorySelectionVC.delegate = self
-            self.navigationController?.pushViewController(categorySelectionVC, animated: true)
-        }
+               if indexPath.row == 0 {
+                   let categorySelectionVC = CategoryViewController()
+                   categorySelectionVC.viewModel = self.categoriesViewModel // Передаём модель
+                   categorySelectionVC.delegate = self
+                   // Модальное отображение с панелью навигации
+                   let navController = UINavigationController(rootViewController: categorySelectionVC)
+                   navController.modalPresentationStyle = .fullScreen
+                   self.present(navController, animated: true, completion: nil)
+               } else if indexPath.row == 1 {
+                   // Переход в рамках навигационного стека
+                   let scheduleSelectionVC = ScheduleSettingViewController()
+                   scheduleSelectionVC.selectedDays = self.selectedSchedule ?? [:]
+                   scheduleSelectionVC.delegate = self
+                   self.navigationController?.pushViewController(scheduleSelectionVC, animated: true)
+               }
+           } else {
+               let categorySelectionVC = CategoryViewController()
+               categorySelectionVC.viewModel = self.categoriesViewModel
+               categorySelectionVC.delegate = self
+               // Модальное отображение с панелью навигации
+               let navController = UINavigationController(rootViewController: categorySelectionVC)
+               navController.modalPresentationStyle = .fullScreen
+               self.present(navController, animated: true, completion: nil)
+           }
+        
         if let category = selectedCategory {
             let indexPath = IndexPath(row: 0, section: 0)
             if let categoryCell = tableView.cellForRow(at: indexPath) {
@@ -411,13 +416,16 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         
         let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
         
-        if let selectedCategory = selectedCategory {
-            trackerStore.addTrackerToCategory(tracker, toCategory: selectedCategory)
-        }
-        
-        delegate?.didCreateTracker(tracker: tracker)
-        dismiss(animated: true, completion: nil)
-        
+    
+    if let selectedCategoryTitle = selectedCategory?.title {
+        trackerStore.addTrackerToCategory(tracker, toCategory: selectedCategory!)
+        delegate?.didCreateTracker(tracker: tracker, categoryName: selectedCategoryTitle)
+    } else {
+
+        delegate?.didCreateTracker(tracker: tracker, categoryName: "Без категории")
     }
+    
+    dismiss(animated: true, completion: nil)
+}
 }
 
