@@ -128,31 +128,29 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
            return viewModel?.categories.count ?? 0
        }
 
-       func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-           let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
-           if let categoryName = viewModel?.categories[indexPath.row].title {
-               cell.textLabel?.text = categoryName
-           } else {
-               cell.textLabel?.text = nil
-           }
-           
-           cell.backgroundColor = UIColor.backgroundDay
-           cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
-           cell.textLabel?.backgroundColor = UIColor.clear
-           cell.layer.cornerRadius = 8
-           cell.accessoryType = .disclosureIndicator
-           cell.clipsToBounds = true
-           cell.accessoryType = .none
-           
-           if let selectedIndexPath = selectedIndexPath, selectedIndexPath == indexPath {
-                   cell.accessoryView = UIImageView(image: UIImage(named: "galochka"))
-               } else {
-                   cell.accessoryView = nil
-               }
-               
-           return cell
-       }
-    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
+        configureCell(cell, atIndexPath: indexPath)
+        return cell
+    }
+
+    func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath) {
+        cell.textLabel?.text = viewModel?.categories[indexPath.row].title
+        
+        cell.backgroundColor = UIColor.backgroundDay
+        cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
+        cell.textLabel?.backgroundColor = UIColor.clear
+        cell.layer.cornerRadius = 8
+        cell.clipsToBounds = true
+        
+        if let selectedIndexPath = selectedIndexPath, selectedIndexPath == indexPath {
+            cell.accessoryView = UIImageView(image: UIImage(named: "checkmark"))
+        } else {
+            cell.accessoryView = nil
+            cell.accessoryType = .none
+        }
+    }
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let selectedIndexPath = selectedIndexPath {
             tableView.cellForRow(at: selectedIndexPath)?.accessoryView = nil

@@ -47,21 +47,29 @@ final class OnboardingViewController: UIPageViewController, UIPageViewController
         return nil
     }
     
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+    func pageViewController(
+        _ pageViewController: UIPageViewController,
+        viewControllerBefore viewController: UIViewController) -> UIViewController? {
         if let viewController = viewController as? OnboardingPageController, let currentIndex = viewController.index {
             return self.viewController(at: currentIndex - 1)
         }
         return nil
     }
     
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+    func pageViewController(
+        _ pageViewController: UIPageViewController,
+        viewControllerAfter viewController: UIViewController) -> UIViewController? {
         if let viewController = viewController as? OnboardingPageController, let currentIndex = viewController.index {
             return self.viewController(at: currentIndex + 1)
         }
         return nil
     }
     
-    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+    func pageViewController(
+        _ pageViewController: UIPageViewController,
+        didFinishAnimating finished: Bool,
+        previousViewControllers: [UIViewController],
+        transitionCompleted completed: Bool) {
         if completed, let currentVC = pageViewController.viewControllers?.first as? OnboardingPageController, let index = currentVC.index {
             pageControl.currentPage = index
         }

@@ -42,7 +42,6 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     private func setupFetchedResultsController() {
         do {
             try fetchedResultsController.performFetch()
-            print("Fetched results controller performed fetch successfully")
         } catch {
             print("Failed to initialize FetchedResultsController: \(error)")
         }

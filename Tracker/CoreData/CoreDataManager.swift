@@ -9,7 +9,6 @@ final class CoreDataManager {
         container.loadPersistentStores { storeDescription, error in
             if let error = error as NSError? {
                 print("Failed to load persistent stores: \(error), \(error.userInfo)")
-                fatalError("Unresolved error \(error), \(error.userInfo)")
             } else {
                 print("Persistent store loaded successfully")
             }
@@ -26,7 +25,7 @@ final class CoreDataManager {
                 try context.save()
             } catch {
                 let nserror = error as NSError
-                fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+                print("Unresolved error \(nserror), \(nserror.userInfo)")
             }
         }
     }
