@@ -343,12 +343,10 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
                    let categorySelectionVC = CategoryViewController()
                    categorySelectionVC.viewModel = self.categoriesViewModel // Передаём модель
                    categorySelectionVC.delegate = self
-                   // Модальное отображение с панелью навигации
                    let navController = UINavigationController(rootViewController: categorySelectionVC)
                    navController.modalPresentationStyle = .fullScreen
                    self.present(navController, animated: true, completion: nil)
                } else if indexPath.row == 1 {
-                   // Переход в рамках навигационного стека
                    let scheduleSelectionVC = ScheduleSettingViewController()
                    scheduleSelectionVC.selectedDays = self.selectedSchedule ?? [:]
                    scheduleSelectionVC.delegate = self
@@ -408,12 +406,10 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             self.present(alert, animated: true, completion: nil)
             return
         }
-        print("Save button tapped")
         guard let trackerStore = trackerStore else {
             fatalError("trackerStore is nil")
         }
         
-        print("Save button tapped")
         let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
         
     

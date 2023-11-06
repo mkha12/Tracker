@@ -198,30 +198,32 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     private func filterVisibleCategories() {
         let currentWeekday = currentDate.weekday
-        
+
         if let query = searchBar.text, !query.isEmpty {
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
                     let isNameMatching = tracker.name.lowercased().contains(query.lowercased())
-                    let isScheduledToday = tracker.schedule?[currentWeekday] ?? false
-                    return isNameMatching && isScheduledToday
+                    // Если расписание есть и оно предназначено для текущего дня, или если расписание отсутствует (для нерегулярных событий), то трекер должен быть видимым
+                    let isScheduledTodayOrNoSchedule = tracker.schedule?[currentWeekday] ?? true
+                    return isNameMatching && isScheduledTodayOrNoSchedule
                 }
                 return TrackerCategory(title: category.title, trackers: filteredTrackers)
             }.filter { !$0.trackers.isEmpty }
         } else {
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
-                    let isScheduledToday = tracker.schedule?[currentWeekday] ?? false
-                    return isScheduledToday
+                    // Если расписание есть и оно предназначено для текущего дня, или если расписание отсутствует (для нерегулярных событий), то трекер должен быть видимым
+                    let isScheduledTodayOrNoSchedule = tracker.schedule?[currentWeekday] ?? true
+                    return isScheduledTodayOrNoSchedule
                 }
                 return TrackerCategory(title: category.title, trackers: filteredTrackers)
             }.filter { !$0.trackers.isEmpty }
         }
-        
+
         updateEmptyTrackersVisibility()
         collectionView.reloadData()
-    }
-    
+            }
+
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
         let noTrackersAvailable = visibleCategories.isEmpty
@@ -275,32 +277,43 @@ extension TrackersViewController {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return visibleCategories[section].trackers.count
     }
-    
+
+ 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "TrackerCell", for: indexPath) as! TrackerCell
         let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
-        
+
         cell.getDaysCount = { [weak self] id in
             return self?.countDays(for: id) ?? 0
         }
-        
+
         cell.configure(with: tracker, currentDate: currentDate)
-        
-        let isCompleted = trackerRecords.contains {
-            $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate)
+
+        let todayIsScheduled = tracker.schedule?[currentDate.weekday] ?? false
+
+        let isCompleted: Bool
+        if let schedule = tracker.schedule, schedule[currentDate.weekday] ?? false {
+            isCompleted = trackerRecords.contains {
+                $0.trackerId == tracker.id && Calendar.current.isDate($0.date, inSameDayAs: currentDate)
+            }
+        } else {
+            isCompleted = trackerRecords.contains { $0.trackerId == tracker.id }
         }
+
         if isCompleted {
             cell.showCompletedState()
         } else {
             cell.showNotCompletedState()
         }
-        
+
         cell.addButtonTapped = { [weak self] in
             self?.handleAddButtonTap(for: tracker)
         }
-        
+
         return cell
     }
+
+
     
     private func handleAddButtonTap(for tracker: Tracker) {
         if currentDate > Date() { return }

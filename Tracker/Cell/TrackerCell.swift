@@ -150,25 +150,30 @@ final class TrackerCell: UICollectionViewCell {
         ])
     }
 
+
     func configure(with tracker: Tracker, currentDate: Date) {
         self.tracker = tracker
         emojiLabel.text = tracker.emoji
         nameLabel.text = tracker.name
-        if let daysCount = getDaysCount?(tracker.id) {
-            daysLabel.text = daysText(for: daysCount)
-        }
 
         trackerView.backgroundColor = tracker.color
         addButton.backgroundColor = tracker.color
-        
-        if let isTrackerActiveOnCurrentDay = tracker.schedule?[currentDate.weekday] {
-            addButton.isHidden = !isTrackerActiveOnCurrentDay
+
+        if let schedule = tracker.schedule, !schedule.isEmpty {
+            daysLabel.isHidden = false
+            if let daysCount = getDaysCount?(tracker.id) {
+                daysLabel.text = daysText(for: daysCount)
+            }
+            addButton.isHidden = !schedule.keys.contains(currentDate.weekday)
         } else {
-            addButton.isHidden = true 
+            daysLabel.isHidden = true
+            addButton.isHidden = false
+
+            addButton.layer.borderWidth = 2
+            addButton.layer.borderColor = UIColor.white.cgColor
         }
     }
-
-    
+ 
     func daysText(for days: Int) -> String {
         switch days {
         case 1:
