@@ -146,7 +146,7 @@ extension ScheduleSettingViewController: UITableViewDataSource, UITableViewDeleg
             cell.textLabel?.text = day.rawValue
         }
         cell.selectionStyle = .none
-
+        
         return cell
     }
 }
@@ -181,3 +181,27 @@ extension Date {
     }
 }
 
+extension WeekDay {
+    func toInt() -> Int {
+        return WeekDay.allCases.firstIndex(of: self) ?? 0
+    }
+    
+    static func fromInt(_ int: Int) -> WeekDay {
+        return WeekDay.allCases[safe: int] ?? .monday // исправлено тут
+    }
+}
+
+extension Dictionary {
+    func mapKeys<Transformed>(_ transform: (Key) throws -> Transformed) rethrows -> [Transformed: Value] {
+        var dictionary: [Transformed: Value] = [:]
+        for (key, value) in self {
+            dictionary[try transform(key)] = value
+        }
+        return dictionary
+    }
+}
+extension Array {
+    subscript(safe index: Index) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}

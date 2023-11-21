@@ -1,5 +1,3 @@
-
-
 import UIKit
 
 struct Tracker {
@@ -9,6 +7,7 @@ struct Tracker {
     let emoji: String
     let schedule: [WeekDay: Bool]?
 }
+
 
 struct TrackerCategory {
     let title: String

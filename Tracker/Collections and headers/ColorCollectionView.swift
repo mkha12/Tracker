@@ -24,7 +24,7 @@ final class ColorCollectionView: UICollectionView {
         layout.minimumLineSpacing = 0
         self.collectionViewLayout = layout
         self.isScrollEnabled = false
-
+        
     }
     
     required init?(coder: NSCoder) {

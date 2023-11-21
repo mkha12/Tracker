@@ -11,22 +11,22 @@ final class EmojiCollectionView: UICollectionView {
     
     override init(frame: CGRect, collectionViewLayout layout: UICollectionViewLayout) {
         super.init(frame: frame, collectionViewLayout: layout)
-            
+        
         delegate = self
         dataSource = self
         register(EmojiCollectionViewCell.self, forCellWithReuseIdentifier: EmojiCollectionViewCell.reuseIdentifier)
-            
+        
         let layout = UICollectionViewFlowLayout()
         layout.itemSize = CGSize(width: 52, height: 52)
         layout.sectionInset = UIEdgeInsets(top: 24, left: 18, bottom: 24, right: 18)
         layout.minimumInteritemSpacing = 1
         layout.minimumLineSpacing = 0
         self.collectionViewLayout = layout
-
+        
         self.isScrollEnabled = false
-
+        
     }
-
+    
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
