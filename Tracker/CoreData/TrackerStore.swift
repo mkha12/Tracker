@@ -6,6 +6,7 @@ protocol TrackerStoreProtocol {
     func addTrackerToCategory(_ tracker: Tracker, toCategory category: TrackerCategory)
     func fetchAllTrackers() -> [Tracker]
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
+    func updateTracker(_ tracker: Tracker)
 }
 
 protocol TrackerStoreDelegate: AnyObject {
@@ -14,6 +15,8 @@ protocol TrackerStoreDelegate: AnyObject {
 
 
 final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsControllerDelegate {
+    
+    
     
     private let context: NSManagedObjectContext
     weak var delegate: TrackerStoreDelegate?
@@ -58,6 +61,33 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         CoreDataManager.shared.saveContext()
         return Tracker(trackerCoreData: tracker)
     }
+    
+    func updateTracker(_ tracker: Tracker) {
+        print("Обновление трекера: \(tracker.name)")
+        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+
+        do {
+            if let trackerCoreData = try context.fetch(fetchRequest).first {
+                trackerCoreData.name = tracker.name
+                trackerCoreData.color = tracker.color
+                trackerCoreData.emoji = tracker.emoji
+                trackerCoreData.schedule = tracker.schedule as? NSObject
+                
+                saveContext()
+
+                // Оповещение делегата об изменении данных
+                if let trackers = fetchedResultsController.fetchedObjects {
+                    delegate?.didChangeTrackers(trackers: trackers.map { Tracker(trackerCoreData: $0) })
+                }
+            } else {
+                print("No tracker found with id: \(tracker.id)")
+            }
+        } catch {
+            print("Error fetching tracker for update: \(error)")
+        }
+    }
+
     
     func fetchAllTrackers() -> [Tracker] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []

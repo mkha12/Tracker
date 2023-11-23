@@ -31,9 +31,22 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     var trackerStore: TrackerStoreProtocol?
     var categoriesViewModel: CategoriesViewModel!
     var trackerCategoryStore: TrackerCategoryStore!
+    var trackerToEdit: Tracker?
+    var filledDaysCount: Int?
+    private let daysCountLabel = UILabel()
+
     
+    enum Mode {
+        case create
+        case edit(Tracker)
+    }
+
+    var mode: Mode = .create
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
+
         self.navigationItem.hidesBackButton = true
         tableView.delegate = self
         tableView.dataSource = self
@@ -45,7 +58,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         categoriesViewModel = CategoriesViewModel()
         textField.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
         updateCreateButtonState()
-        
+        setupForMode()
     }
 
     
@@ -54,6 +67,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         
         view.backgroundColor = .white
         view.addSubview(scrollView)
+    
         
         let contentView = UIView()
         scrollView.addSubview(contentView)
@@ -124,9 +138,13 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         colorHeaderLabel.font = UIFont.systemFont(ofSize: 19, weight: .bold)
         colorHeaderLabel.textAlignment = .left
         
-        
+        daysCountLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
+        daysCountLabel.textColor = .blackDay
         contentView.addSubview(emojiHeaderLabel)
         contentView.addSubview(colorHeaderLabel)
+        
+        
+        view.addSubview(daysCountLabel)
         
         // Set constraints
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -140,6 +158,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         colorHeaderLabel.translatesAutoresizingMaskIntoConstraints = false
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         contentView.translatesAutoresizingMaskIntoConstraints = false
+        daysCountLabel.translatesAutoresizingMaskIntoConstraints = false
         
         colorCollectionView.colors = [
             .colorSelection1, .colorSelection2, .colorSelection3,
@@ -187,7 +206,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             colorHeaderLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
             colorHeaderLabel.heightAnchor.constraint(equalToConstant: 19),
             
-            
             colorCollectionView.topAnchor.constraint(equalTo: colorHeaderLabel.bottomAnchor, constant: 0),
             colorCollectionView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             colorCollectionView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
@@ -210,10 +228,32 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             contentView.widthAnchor.constraint(equalTo: scrollView.widthAnchor),
             contentView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
             
+            daysCountLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 80),
+            daysCountLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 136),
+            daysCountLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -136),
+            
         ])
         
     }
     
+    private func setupForMode() {
+        switch mode {
+        case .create:
+            daysCountLabel.isHidden = true
+        case .edit(let tracker):
+            // Заполните UI данными из tracker
+            textField.text = tracker.name
+            selectedEmoji = tracker.emoji
+            selectedColor = tracker.color
+            selectedCategory = categoriesViewModel.categories.first { $0.trackers.contains(where: { $0.id == tracker.id }) }
+            print("Категория при редактировании: \(selectedCategory?.title ?? "нет категории")")
+            selectedSchedule = tracker.schedule
+            daysCountLabel.text = "\(filledDaysCount ?? 0) дней"
+            daysCountLabel.isHidden = false
+        }
+    }
+
+
     @objc func textFieldDidChange(_ textField: UITextField) {
         updateCreateButtonState()
     }
@@ -221,6 +261,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     func allRequiredFieldsFilled() -> Bool {
         return !(textField.text?.isEmpty ?? true) && selectedEmoji != nil && selectedColor != nil && (isHabit ? selectedSchedule != nil : true)
     }
+    
     
     func updateCreateButtonState() {
         if allRequiredFieldsFilled() {
@@ -311,6 +352,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     
     func didSelectCategory(_ category: TrackerCategory) {
         selectedCategory = category
+        print("Выбрана категория: \(category.title)")
         let categoryCellIndexPath = IndexPath(row: 0, section: 0)
         categoryCell.textLabel?.text = category.title
         categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
@@ -384,44 +426,52 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         dismiss(animated: true, completion: nil)
     }
     
+    
     @objc private func saveTracker() {
-        guard let trackerName = textField.text, !trackerName.isEmpty else {
-            let alert = UIAlertController(title: "Ошибка", message: "Введите название трекера", preferredStyle: .alert)
+        print("saveTracker вызван")
+        guard let trackerName = textField.text, !trackerName.isEmpty,
+              let selectedEmoji = selectedEmoji,
+              let selectedColor = selectedColor,
+              let trackerStore = trackerStore else {
+            // Вывод предупреждения, если не все поля заполнены
+            let alertMessage = "Убедитесь, что все поля заполнены корректно."
+            let alert = UIAlertController(title: "Ошибка", message: alertMessage, preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
             self.present(alert, animated: true, completion: nil)
             return
         }
-        
-        guard let selectedEmoji = selectedEmoji else {
-            let alert = UIAlertController(title: "Ошибка", message: "Выберите эмоджи", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
-            self.present(alert, animated: true, completion: nil)
-            return
-        }
-        
-        guard let selectedColor = selectedColor else {
-            let alert = UIAlertController(title: "Ошибка", message: "Выберите цвет", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ок", style: .default, handler: nil))
-            
-            self.present(alert, animated: true, completion: nil)
-            return
-        }
-        guard let trackerStore = trackerStore else {
-            fatalError("trackerStore is nil")
-        }
-        
-        let tracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
-        
-    
-    if let selectedCategoryTitle = selectedCategory?.title {
-        trackerStore.addTrackerToCategory(tracker, toCategory: selectedCategory!)
-        delegate?.didCreateTracker(tracker: tracker, categoryName: selectedCategoryTitle)
-    } else {
 
-        delegate?.didCreateTracker(tracker: tracker, categoryName: "Без категории")
+        switch mode {
+        case .create:
+            // Создание нового трекера
+            print("Создание трекера в creation: \(trackerName), \(selectedEmoji), \(selectedColor)")
+            let newTracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
+            addOrUpdateTrackerInCategory(newTracker)
+            delegate?.didCreateTracker(tracker: newTracker, categoryName: selectedCategory?.title ?? "Без категории")
+
+        case .edit(let existingTracker):
+            // Обновление существующего трекера
+            print("Обновление трекера creation: \(trackerName), \(selectedEmoji), \(selectedColor)")
+            let updatedTracker = Tracker(id: existingTracker.id, name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
+            trackerStore.updateTracker(updatedTracker)
+            addOrUpdateTrackerInCategory(updatedTracker)
+            delegate?.didCreateTracker(tracker: updatedTracker, categoryName: selectedCategory?.title ?? "Без категории")
+        }
+
+        dismiss(animated: true, completion: nil)
     }
-    
-    dismiss(animated: true, completion: nil)
-}
+
+    private func addOrUpdateTrackerInCategory(_ tracker: Tracker) {
+        if let selectedCategoryTitle = selectedCategory?.title {
+            if let trackerStore = trackerStore {
+                trackerStore.addTrackerToCategory(tracker, toCategory: selectedCategory!)
+            }
+
+        } else {
+            // Логика для случаев, когда категория не выбрана
+            // Например, добавление трекера в категорию "Без категории"
+        }
+    }
+
 }
 

@@ -25,7 +25,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var viewModel: CategoriesViewModel!
     var categoryStore: TrackerCategoryStore?
     var categoriesViewModel: CategoriesViewModel?
-    
+    var pinnedCategory = TrackerCategory(title: "Закрепленные", trackers: [])
+    var trackerCategoryMap: [UUID: Int] = [:]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,7 +45,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     private func setupUI() {
         
-        self.navigationItem.title = "Трекеры"
+        self.navigationItem.title = NSLocalizedString("title_trackers", comment: "")
         
         let addImage = UIImage(named: "Plus")?.withRenderingMode(.alwaysOriginal)
         let addButton = UIBarButtonItem(image: addImage, style: .plain, target: self, action: #selector(presentAddNewTrackerScreen))
@@ -62,7 +63,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         
         searchBar = UISearchTextField()
         searchBar.delegate = self
-        searchBar.placeholder = "Поиск"
+        searchBar.placeholder = NSLocalizedString("search_placeholder", comment: "")
         searchBar.backgroundColor = .white
         searchBar.clearButtonMode = .never
         searchBar.translatesAutoresizingMaskIntoConstraints = false
@@ -84,7 +85,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         emptyTrackersImageView.contentMode = .scaleAspectFit
         
         emptyTrackersLabel = UILabel()
-        emptyTrackersLabel.text = "Что будем отслеживать?"
+        emptyTrackersLabel.text = NSLocalizedString("empty_trackers_message", comment: "")
         emptyTrackersLabel.textColor = .blackDay
         emptyTrackersLabel.font = UIFont.systemFont(ofSize: 12, weight: .medium)
         emptyTrackersLabel.textAlignment = .center
@@ -105,7 +106,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         notFoundImageView.contentMode = .scaleAspectFit
         
         notFoundLabel = UILabel()
-        notFoundLabel.text = "Ничего не найдено"
+        notFoundLabel.text = NSLocalizedString("not_found_message", comment: "")
         notFoundLabel.textColor = .blackDay
         notFoundLabel.font = UIFont.systemFont(ofSize: 12)
         notFoundLabel.textAlignment = .center
@@ -151,12 +152,14 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     func addNewTracker(_ tracker: Tracker, toCategory categoryName: String) {
         if let index = categories.firstIndex(where: { $0.title == categoryName }) {
+            trackerCategoryMap[tracker.id] = index
             var updatedTrackers = categories[index].trackers
             updatedTrackers.append(tracker)
             
             let updatedCategory = TrackerCategory(title: categoryName, trackers: updatedTrackers)
             categories[index] = updatedCategory
         } else {
+            trackerCategoryMap[tracker.id] = categories.count
             let newCategory = TrackerCategory(title: categoryName, trackers: [tracker])
             categories.append(newCategory)
         }
@@ -170,6 +173,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             self?.collectionView.reloadData()
         }
     }
+    
     
     func didCreateTracker(tracker: Tracker, categoryName: String) {
         addNewTracker(tracker, toCategory: categoryName)
@@ -185,9 +189,15 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     }
     
     func updateVisibleCategories() {
-        let areTrackersAvailable = !visibleCategories.isEmpty
-        emptyTrackersStackView.isHidden = areTrackersAvailable
+        if !pinnedCategory.trackers.isEmpty {
+            visibleCategories = [pinnedCategory] + categories
+        } else {
+            visibleCategories = categories
+        }
+        
+        collectionView.reloadData()
     }
+
     
     @objc func dateChanged() {
         currentDate = datePicker.date
@@ -265,6 +275,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         filterVisibleCategories()
         collectionView.reloadData()
     }
+    
     
 }
 
@@ -379,3 +390,100 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
         return 8
     }
 }
+extension TrackersViewController {
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+        let tracker = visibleCategories[indexPath.section].trackers[indexPath.item]
+        
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ -> UIMenu? in
+            let pinActionTitle = self.isTrackerPinned(tracker) ? "Открепить" : "Закрепить"
+            let pinAction = UIAction(
+                title: pinActionTitle,
+                image: nil,
+                identifier: nil,
+                discoverabilityTitle: nil,
+                state: .off) { [weak self] action in
+                    if self?.isTrackerPinned(tracker) == true {
+                        self?.unpinTracker(tracker)
+                    } else {
+                        self?.pinTracker(tracker)
+                    }
+                }
+            
+            let editAction = UIAction(
+                title: "Редактировать",
+                image: nil,
+                identifier: nil,
+                discoverabilityTitle: nil,
+                state: .off) { [weak self] action in
+                    guard let self = self else { return }
+
+                    let trackerToEdit = self.visibleCategories[indexPath.section].trackers[indexPath.item]
+                    let daysCount = self.countDays(for: trackerToEdit.id)
+
+                    let editController = TrackerCreationViewController()
+                    editController.mode = .edit(trackerToEdit)
+                    editController.filledDaysCount = daysCount // передаем количество дней
+                    editController.delegate = self // Установка делегата, если это необходимо
+
+                    // Отображение контроллера
+                    self.navigationController?.pushViewController(editController, animated: true)
+                    // Или для модального представления: self.present(editController, animated: true, completion: nil)
+                }
+
+            let deleteAction = UIAction(
+                title: "Удалить",
+                    image: nil,
+                    identifier: nil,
+                    discoverabilityTitle: nil,
+                    attributes: .destructive,
+                    state: .off) { action in
+                    // Здесь добавьте логику для удаления трека
+            }
+            
+            return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
+        }
+    }
+}
+
+extension TrackersViewController {
+    func pinTracker(_ tracker: Tracker) {
+        print("Pinning tracker: \(tracker.name)")
+
+        categories = categories.map { category in
+            let updatedTrackers = category.trackers.filter { $0.id != tracker.id }
+            return TrackerCategory(title: category.title, trackers: updatedTrackers)
+        }
+
+        let updatedPinnedTrackers = pinnedCategory.trackers + [tracker]
+        pinnedCategory = TrackerCategory(title: pinnedCategory.title, trackers: updatedPinnedTrackers)
+
+        updateVisibleCategories()
+        collectionView.reloadData()
+        print("Tracker pinned, categories updated")
+    }
+
+
+    func unpinTracker(_ tracker: Tracker) {
+        let updatedPinnedTrackers = pinnedCategory.trackers.filter { $0.id != tracker.id }
+        pinnedCategory = TrackerCategory(title: pinnedCategory.title, trackers: updatedPinnedTrackers)
+
+        if let originalCategoryIndex = trackerCategoryMap[tracker.id],
+           originalCategoryIndex < categories.count {
+            var originalCategory = categories[originalCategoryIndex]
+            let updatedTrackers = originalCategory.trackers + [tracker]
+            categories[originalCategoryIndex] = TrackerCategory(title: originalCategory.title, trackers: updatedTrackers)
+        }
+
+        updateVisibleCategories()
+        collectionView.reloadData()
+    }
+
+}
+
+
+extension TrackersViewController {
+    func isTrackerPinned(_ tracker: Tracker) -> Bool {
+        return pinnedCategory.trackers.contains(where: { $0.id == tracker.id })
+    }
+}
+
