@@ -34,7 +34,9 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         setupUI()
         updateEmptyTrackersVisibility()
         filterVisibleCategories()
-        trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+        categoryStore = TrackerCategoryStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+        trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext, categoryStore: categoryStore!)
+
         trackers = trackerStore?.fetchAllTrackers() ?? []
         
         updateCategories()
@@ -213,7 +215,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
                     let isNameMatching = tracker.name.lowercased().contains(query.lowercased())
-                    // Если расписание есть и оно предназначено для текущего дня, или если расписание отсутствует (для нерегулярных событий), то трекер должен быть видимым
+
                     let isScheduledTodayOrNoSchedule = tracker.schedule?[currentWeekday] ?? true
                     return isNameMatching && isScheduledTodayOrNoSchedule
                 }
@@ -222,7 +224,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         } else {
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
-                    // Если расписание есть и оно предназначено для текущего дня, или если расписание отсутствует (для нерегулярных событий), то трекер должен быть видимым
                     let isScheduledTodayOrNoSchedule = tracker.schedule?[currentWeekday] ?? true
                     return isScheduledTodayOrNoSchedule
                 }
@@ -422,12 +423,14 @@ extension TrackersViewController {
 
                     let editController = TrackerCreationViewController()
                     editController.mode = .edit(trackerToEdit)
-                    editController.filledDaysCount = daysCount // передаем количество дней
-                    editController.delegate = self // Установка делегата, если это необходимо
+                    editController.hidesBottomBarWhenPushed = true
+                    editController.filledDaysCount = daysCount
+                    editController.delegate = self
+                    editController.trackerStore = self.trackerStore
 
-                    // Отображение контроллера
                     self.navigationController?.pushViewController(editController, animated: true)
-                    // Или для модального представления: self.present(editController, animated: true, completion: nil)
+        
+
                 }
 
             let deleteAction = UIAction(
@@ -437,7 +440,6 @@ extension TrackersViewController {
                     discoverabilityTitle: nil,
                     attributes: .destructive,
                     state: .off) { action in
-                    // Здесь добавьте логику для удаления трека
             }
             
             return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
@@ -448,6 +450,9 @@ extension TrackersViewController {
 extension TrackersViewController {
     func pinTracker(_ tracker: Tracker) {
         print("Pinning tracker: \(tracker.name)")
+        if let originalCategoryIndex = categories.firstIndex(where: { $0.trackers.contains(where: { $0.id == tracker.id }) }) {
+             trackerCategoryMap[tracker.id] = originalCategoryIndex
+         }
 
         categories = categories.map { category in
             let updatedTrackers = category.trackers.filter { $0.id != tracker.id }
@@ -462,20 +467,28 @@ extension TrackersViewController {
         print("Tracker pinned, categories updated")
     }
 
-
     func unpinTracker(_ tracker: Tracker) {
+        print("Начало процесса открепления трекера: \(tracker.name)")
+
         let updatedPinnedTrackers = pinnedCategory.trackers.filter { $0.id != tracker.id }
         pinnedCategory = TrackerCategory(title: pinnedCategory.title, trackers: updatedPinnedTrackers)
 
-        if let originalCategoryIndex = trackerCategoryMap[tracker.id],
-           originalCategoryIndex < categories.count {
-            var originalCategory = categories[originalCategoryIndex]
-            let updatedTrackers = originalCategory.trackers + [tracker]
-            categories[originalCategoryIndex] = TrackerCategory(title: originalCategory.title, trackers: updatedTrackers)
+        print("Трекер откреплен от закрепленных, текущее количество закрепленных трекеров: \(pinnedCategory.trackers.count)")
+
+        if let originalCategoryIndex = trackerCategoryMap[tracker.id], originalCategoryIndex < categories.count {
+                var originalCategory = categories[originalCategoryIndex]
+                if !originalCategory.trackers.contains(where: { $0.id == tracker.id }) {
+                    var updatedTrackers = originalCategory.trackers
+                    updatedTrackers.append(tracker)
+                    categories[originalCategoryIndex] = TrackerCategory(title: originalCategory.title, trackers: updatedTrackers)
+                }
+            } else {
+            print("Не найден индекс оригинальной категории для трекера \(tracker.name)")
         }
 
         updateVisibleCategories()
         collectionView.reloadData()
+        print("Коллекция обновлена")
     }
 
 }

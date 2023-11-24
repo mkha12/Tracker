@@ -64,17 +64,29 @@ final class TrackerCategoryStore: NSObject {
             print("Ошибка при сохранении контекста: \(error)")
         }
     }
-    
-    func fetchCategoryCoreData(for trackerCategory: TrackerCategory) -> TrackerCategoryCoreData? { // добавила чторбы работали категории
+//    
+//    func fetchCategoryCoreData(for trackerCategory: TrackerCategory) -> TrackerCategoryCoreData? { // добавила чторбы работали категории
+//        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+//        fetchRequest.predicate = NSPredicate(format: "title == %@", trackerCategory.title)
+//        do {
+//            let results = try context.fetch(fetchRequest)
+//            return results.first
+//        } catch {
+//            return nil
+//        }
+//    }
+    func fetchCategoryCoreData(for trackerCategory: TrackerCategory) -> TrackerCategoryCoreData? {
         let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", trackerCategory.title)
         do {
             let results = try context.fetch(fetchRequest)
             return results.first
         } catch {
+            print("Ошибка при поиске категории CoreData: \(error)")
             return nil
         }
     }
+
     
 }
 

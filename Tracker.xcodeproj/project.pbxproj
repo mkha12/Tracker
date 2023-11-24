@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CC98C0142B0CBFFA00916959 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CC98C0162B0CBFFA00916959 /* Localizable.strings */; };
-		CC98C01A2B0CC3C300916959 /* LocalizableEN.strings in Resources */ = {isa = PBXBuildFile; fileRef = CC98C01C2B0CC3C300916959 /* LocalizableEN.strings */; };
+		CC98C02E2B0F7D8F00916959 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CC98C0302B0F7D8F00916959 /* Localizable.strings */; };
 		CCB756F52A9E02C0007DC0FF /* ColorCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB756F42A9E02C0007DC0FF /* ColorCollectionView.swift */; };
 		CCB756F72A9E02DE007DC0FF /* EmojiCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB756F62A9E02DE007DC0FF /* EmojiCollectionView.swift */; };
 		CCB756F92A9E2096007DC0FF /* EmojiCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB756F82A9E2096007DC0FF /* EmojiCollectionViewCell.swift */; };
@@ -42,10 +41,9 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		CC98C0122B0CBEA800916959 /* en-GB */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "en-GB"; path = "en-GB.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
-		CC98C0132B0CBF9500916959 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		CC98C0172B0CC00000916959 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
-		CC98C01B2B0CC3C300916959 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/LocalizableEN.strings; sourceTree = "<group>"; };
+		CC98C02B2B0F7D6300916959 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
+		CC98C02F2B0F7D8F00916959 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC98C0312B0F7D9300916959 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CCB756F42A9E02C0007DC0FF /* ColorCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCollectionView.swift; sourceTree = "<group>"; };
 		CCB756F62A9E02DE007DC0FF /* EmojiCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCollectionView.swift; sourceTree = "<group>"; };
 		CCB756F82A9E2096007DC0FF /* EmojiCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -179,8 +177,7 @@
 				CCBBA1E82A9783EA0054174F /* UIColor+Extentions.swift */,
 				CCF94E842AD041CC00AFDCE8 /* UIColorValueTransformer.swift */,
 				CCF94E862AD0443000AFDCE8 /* ScheduleValueTransformer.swift */,
-				CC98C0162B0CBFFA00916959 /* Localizable.strings */,
-				CC98C01C2B0CC3C300916959 /* LocalizableEN.strings */,
+				CC98C0302B0F7D8F00916959 /* Localizable.strings */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -237,7 +234,6 @@
 			knownRegions = (
 				en,
 				Base,
-				"en-GB",
 				ru,
 			);
 			mainGroup = CCBBA1C82A976EAE0054174F;
@@ -256,8 +252,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CCBBA1E12A976EAF0054174F /* LaunchScreen.storyboard in Resources */,
-				CC98C0142B0CBFFA00916959 /* Localizable.strings in Resources */,
-				CC98C01A2B0CC3C300916959 /* LocalizableEN.strings in Resources */,
+				CC98C02E2B0F7D8F00916959 /* Localizable.strings in Resources */,
 				CCBBA1DE2A976EAF0054174F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -303,28 +298,20 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		CC98C0162B0CBFFA00916959 /* Localizable.strings */ = {
+		CC98C0302B0F7D8F00916959 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				CC98C0172B0CC00000916959 /* ru */,
+				CC98C02F2B0F7D8F00916959 /* ru */,
+				CC98C0312B0F7D9300916959 /* en */,
 			);
 			name = Localizable.strings;
-			sourceTree = "<group>";
-		};
-		CC98C01C2B0CC3C300916959 /* LocalizableEN.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				CC98C01B2B0CC3C300916959 /* en */,
-			);
-			name = LocalizableEN.strings;
 			sourceTree = "<group>";
 		};
 		CCBBA1DF2A976EAF0054174F /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
 				CCBBA1E02A976EAF0054174F /* Base */,
-				CC98C0122B0CBEA800916959 /* en-GB */,
-				CC98C0132B0CBF9500916959 /* ru */,
+				CC98C02B2B0F7D6300916959 /* ru */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -468,7 +455,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.yauggggmyrdgkjhgjh.Tracker;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.yaugsssssssjh.Tracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -499,7 +486,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = ru.yauggggmyrdgkjhgjh.Tracker;
+				PRODUCT_BUNDLE_IDENTIFIER = ru.yaugsssssssjh.Tracker;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

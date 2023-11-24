@@ -1,6 +1,9 @@
 
-
-"title_trackers" = "Трекеры";
-"search_placeholder" = "Поиск";
-"empty_trackers_message" = "Что будем отслеживать?";
-"not_found_message" = "Ничего не найдено";
+"title_trackers" = "Trackers";
+"search_placeholder" = "Search";
+"empty_trackers_message" = "What will we track?";
+"not_found_message" = "Nothing found";
+"tabbar_trackers" = "Trackers";
+"tabbar_stat" = "Statistics";
+"count_day" = "day";
+"count_days" = "days";

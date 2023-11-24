@@ -6,7 +6,7 @@ protocol TrackerStoreProtocol {
     func addTrackerToCategory(_ tracker: Tracker, toCategory category: TrackerCategory)
     func fetchAllTrackers() -> [Tracker]
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
-    func updateTracker(_ tracker: Tracker)
+    func updateTracker(_ tracker: Tracker, category: TrackerCategory?)
 }
 
 protocol TrackerStoreDelegate: AnyObject {
@@ -15,18 +15,19 @@ protocol TrackerStoreDelegate: AnyObject {
 
 
 final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsControllerDelegate {
+   
     
-    
-    
+    private let categoryStore: TrackerCategoryStore
     private let context: NSManagedObjectContext
     weak var delegate: TrackerStoreDelegate?
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext, categoryStore: TrackerCategoryStore) {
         self.context = context
+        self.categoryStore = categoryStore
         super.init()
         setupFetchedResultsController()
     }
-    
+
     private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCoreData> = {
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
@@ -62,31 +63,32 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         return Tracker(trackerCoreData: tracker)
     }
     
-    func updateTracker(_ tracker: Tracker) {
-        print("Обновление трекера: \(tracker.name)")
+
+    func updateTracker(_ tracker: Tracker, category: TrackerCategory?) {
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
 
         do {
-            if let trackerCoreData = try context.fetch(fetchRequest).first {
-                trackerCoreData.name = tracker.name
-                trackerCoreData.color = tracker.color
-                trackerCoreData.emoji = tracker.emoji
-                trackerCoreData.schedule = tracker.schedule as? NSObject
-                
-                saveContext()
+            let results = try context.fetch(fetchRequest)
+            if let trackerToUpdate = results.first {
+                trackerToUpdate.name = tracker.name
+                trackerToUpdate.color = tracker.color
+                trackerToUpdate.emoji = tracker.emoji
+                trackerToUpdate.schedule = tracker.schedule as? NSObject
 
-                // Оповещение делегата об изменении данных
-                if let trackers = fetchedResultsController.fetchedObjects {
-                    delegate?.didChangeTrackers(trackers: trackers.map { Tracker(trackerCoreData: $0) })
+                // Обновляем категорию, если это необходимо
+                if let category = category,
+                   let categoryCoreData = categoryStore.fetchCategoryCoreData(for: category) {
+                    trackerToUpdate.category = categoryCoreData
                 }
-            } else {
-                print("No tracker found with id: \(tracker.id)")
+
+                saveContext()
             }
         } catch {
-            print("Error fetching tracker for update: \(error)")
+            print("Ошибка при обновлении трекера: \(error)")
         }
     }
+
 
     
     func fetchAllTrackers() -> [Tracker] {
@@ -146,3 +148,28 @@ extension Tracker {
         self.schedule = trackerCoreData.schedule as? [WeekDay: Bool] ?? [:]
     }
 }
+//    func updateTracker(_ tracker: Tracker) {
+//        print("Обновление трекера: \(tracker.name)")
+//        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+//        fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+//
+//        do {
+//            if let trackerCoreData = try context.fetch(fetchRequest).first {
+//                trackerCoreData.name = tracker.name
+//                trackerCoreData.color = tracker.color
+//                trackerCoreData.emoji = tracker.emoji
+//                trackerCoreData.schedule = tracker.schedule as? NSObject
+//
+//                saveContext()
+//
+//                // Оповещение делегата об изменении данных
+//                if let trackers = fetchedResultsController.fetchedObjects {
+//                    delegate?.didChangeTrackers(trackers: trackers.map { Tracker(trackerCoreData: $0) })
+//                }
+//            } else {
+//                print("No tracker found with id: \(tracker.id)")
+//            }
+//        } catch {
+//            print("Error fetching tracker for update: \(error)")
+//        }
+//    }
