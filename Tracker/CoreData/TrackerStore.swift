@@ -7,6 +7,7 @@ protocol TrackerStoreProtocol {
     func fetchAllTrackers() -> [Tracker]
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
     func updateTracker(_ tracker: Tracker, category: TrackerCategory?)
+    func deleteTracker(_ tracker: Tracker)
 }
 
 protocol TrackerStoreDelegate: AnyObject {
@@ -136,6 +137,33 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
             print("Error searching for tracker or category: \(error)")
         }
     }
+    func deleteTracker(_ tracker: Tracker) {
+        print("Попытка удалить трекер: \(tracker.name)")
+        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+
+        do {
+            let results = try context.fetch(fetchRequest)
+            if let trackerToDelete = results.first {
+                print("Трекер найден в Core Data и будет удален: \(trackerToDelete.name ?? "нет имени")")
+                let recordFetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+                recordFetchRequest.predicate = NSPredicate(format: "trackerId == %@", tracker.id as CVarArg)
+                let recordsToDelete = try context.fetch(recordFetchRequest)
+                print("Найдено записей для удаления: \(recordsToDelete.count)")
+                for record in recordsToDelete {
+                    context.delete(record)
+                }
+                context.delete(trackerToDelete)
+                saveContext()
+
+                delegate?.didChangeTrackers(trackers: fetchAllTrackers())
+                print("Трекер и связанные записи удалены")
+            }
+        } catch {
+            print("Ошибка при удалении трекера: \(error)")
+        }
+    }
+
     
 }
 
@@ -148,28 +176,3 @@ extension Tracker {
         self.schedule = trackerCoreData.schedule as? [WeekDay: Bool] ?? [:]
     }
 }
-//    func updateTracker(_ tracker: Tracker) {
-//        print("Обновление трекера: \(tracker.name)")
-//        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
-//        fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
-//
-//        do {
-//            if let trackerCoreData = try context.fetch(fetchRequest).first {
-//                trackerCoreData.name = tracker.name
-//                trackerCoreData.color = tracker.color
-//                trackerCoreData.emoji = tracker.emoji
-//                trackerCoreData.schedule = tracker.schedule as? NSObject
-//
-//                saveContext()
-//
-//                // Оповещение делегата об изменении данных
-//                if let trackers = fetchedResultsController.fetchedObjects {
-//                    delegate?.didChangeTrackers(trackers: trackers.map { Tracker(trackerCoreData: $0) })
-//                }
-//            } else {
-//                print("No tracker found with id: \(tracker.id)")
-//            }
-//        } catch {
-//            print("Error fetching tracker for update: \(error)")
-//        }
-//    }

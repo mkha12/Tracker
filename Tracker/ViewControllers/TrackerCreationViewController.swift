@@ -66,9 +66,8 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
          view.backgroundColor = .white
          view.addSubview(scrollView)
          scrollView.addSubview(contentView)
-        //navigationController?.navigationBar.isTranslucent = false
         scrollView.contentInsetAdjustmentBehavior = .never
-
+       
          
          categoryCell.textLabel?.text = "Категория"
          scheduleCell.textLabel?.text = "Расписание"
@@ -257,7 +256,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             selectedColor = tracker.color
             selectedCategory = categoriesViewModel.categories.first { $0.trackers.contains(where: { $0.id == tracker.id }) }
             selectedSchedule = tracker.schedule
-            //daysCountLabel.text = "\(filledDaysCount ?? 0) дней"
             if let daysCount = filledDaysCount {
                         daysCountLabel.text = daysCountText(for: daysCount)
                     }
@@ -516,7 +514,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             return "\(days) дней"
         }
     }
-
 
 }
 
