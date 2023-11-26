@@ -7,4 +7,6 @@
 "tabbar_stat" = "Статистика";
 "count_day" = "День";
 "count_days" = "Дней";
-
+"filters" = "Фильтры";
+"title_statistics" = "Статистика";
+"empty_stat_message" = "Анализировать пока нечего";

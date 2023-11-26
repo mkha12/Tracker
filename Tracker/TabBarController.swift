@@ -5,12 +5,14 @@ final class MainTabBarController: UITabBarController {
         super.viewDidLoad()
 
         let trackersVC = TrackersViewController()
-        trackersVC.tabBarItem = UITabBarItem(title: "Трекеры", image: UIImage(named: "trackerIcon"), selectedImage: nil)
+        trackersVC.tabBarItem = UITabBarItem(title: NSLocalizedString("tabbar_trackers", comment: ""), image: UIImage(named: "trackerIcon"), selectedImage: nil)
+        let trackersNavController = UINavigationController(rootViewController: trackersVC)
 
-        let statisticsVC = UIViewController()
-        statisticsVC.tabBarItem = UITabBarItem(title: "Статистика", image: UIImage(named: "statisticsIcon"), selectedImage: nil)
+        let statisticsVC = StatisticsViewController()
+        statisticsVC.tabBarItem = UITabBarItem(title: NSLocalizedString("tabbar_stat", comment: ""), image: UIImage(named: "statisticsIcon"), selectedImage: nil)
+        let statisticsNavController = UINavigationController(rootViewController: statisticsVC)
 
-        viewControllers = [UINavigationController(rootViewController: trackersVC), statisticsVC]
+        viewControllers = [trackersNavController, statisticsNavController]
     }
-
 }
+

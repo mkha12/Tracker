@@ -20,16 +20,17 @@ extension UIColor {
     static var colorSelection17: UIColor { UIColor(named: "Color selection 17") ?? UIColor.blue }
     static var colorSelection18: UIColor { UIColor(named: "Color selection 18") ?? UIColor.green }
     
-    static var backgroundDay: UIColor { UIColor(named: "Background [day]") ?? UIColor.blue }
-    static var backgroundNight: UIColor { UIColor(named: "Background [night]") ?? UIColor.gray }
-    static var blackDay: UIColor { UIColor(named: "Black [day]") ?? UIColor.black }
-    static var blackNight: UIColor { UIColor(named: "Black [night]") ?? UIColor.white }
+
+    static var background: UIColor { UIColor(named: "Background") ?? UIColor.blue }
+    static var black: UIColor { UIColor(named: "Black") ?? UIColor.black }
     static var blue: UIColor { UIColor(named: "Blue") ?? UIColor.blue }
     static var gray: UIColor { UIColor(named: "Gray") ?? UIColor.gray }
     static var lightGray: UIColor { UIColor(named: "Light Gray") ?? UIColor.lightGray }
     static var red: UIColor { UIColor(named: "Red") ?? UIColor.red }
-    static var whiteDay: UIColor { UIColor(named: "White [day]") ?? UIColor.white }
-    static var whiteNight: UIColor { UIColor(named: "White [night]") ?? UIColor.black }
+    static var white: UIColor { UIColor(named: "White") ?? UIColor.black }
+    static var separatorColour: UIColor { UIColor(named: "separatorColour") ?? UIColor.black }
+    
+    
    
 }
 

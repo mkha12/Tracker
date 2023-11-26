@@ -61,6 +61,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         tracker.schedule = schedule as NSObject
         saveContext()
         CoreDataManager.shared.saveContext()
+        print("Создан трекер: \(tracker)")
         return Tracker(trackerCoreData: tracker)
     }
     
@@ -94,16 +95,18 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     
     func fetchAllTrackers() -> [Tracker] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
+        print("Загружены все трекеры: \(fetchedObjects)")
         return fetchedObjects.map { Tracker(trackerCoreData: $0) }
     }
     
     func saveContext() {
         if context.hasChanges {
+            print("Context has changes before saving")
             do {
                 try context.save()
                 print("Context saved successfully")
             } catch {
-                print("Failed to save context: \(error)")
+                print("Failed to save context: \(error.localizedDescription)")
             }
         } else {
             print("No changes in context to save")
@@ -176,3 +179,4 @@ extension Tracker {
         self.schedule = trackerCoreData.schedule as? [WeekDay: Bool] ?? [:]
     }
 }
+

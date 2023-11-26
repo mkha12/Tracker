@@ -130,7 +130,7 @@ extension ScheduleSettingViewController: UITableViewDataSource, UITableViewDeleg
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "DayCell", for: indexPath)
-        cell.backgroundColor = .backgroundDay
+        cell.backgroundColor = .background
         cell.accessoryView = getSwitch(for: indexPath)
         
         if indexPath.row == 6 {

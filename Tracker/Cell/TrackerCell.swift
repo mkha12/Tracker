@@ -72,6 +72,7 @@ final class TrackerCell: UICollectionViewCell {
         daysView.backgroundColor = .clear
         daysView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner]
         daysView.layer.cornerRadius = 16
+        
 
 
         NSLayoutConstraint.activate([
@@ -170,7 +171,7 @@ final class TrackerCell: UICollectionViewCell {
             addButton.isHidden = false
 
             addButton.layer.borderWidth = 2
-            addButton.layer.borderColor = UIColor.white.cgColor
+            addButton.layer.borderColor = UIColor.clear.cgColor
         }
     }
  

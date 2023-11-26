@@ -22,7 +22,6 @@ final class EmojiCollectionView: UICollectionView {
         layout.minimumInteritemSpacing = 1
         layout.minimumLineSpacing = 0
         self.collectionViewLayout = layout
-        
         self.isScrollEnabled = false
         
     }

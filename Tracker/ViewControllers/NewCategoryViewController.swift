@@ -38,7 +38,7 @@ final class NewCategoryViewController: UIViewController {
         categoryNameTextField.translatesAutoresizingMaskIntoConstraints = false
         categoryNameTextField.placeholder = "Введите название категории"
         categoryNameTextField.clearButtonMode = .whileEditing
-        categoryNameTextField.backgroundColor = UIColor.backgroundDay
+        categoryNameTextField.backgroundColor = UIColor.background
         categoryNameTextField.leftViewMode = .always
         categoryNameTextField.layer.cornerRadius = 16
         

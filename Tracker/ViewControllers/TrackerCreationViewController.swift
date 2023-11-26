@@ -45,7 +45,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
 
 
     override func viewDidLoad() {
-        print("viewDidLoad: isHabit = \(isHabit)")
+        print("TrackerCreationViewController viewDidLoad. isHabit: \(isHabit)")
         super.viewDidLoad()
         self.navigationItem.hidesBackButton = true
         tableView.delegate = self
@@ -62,7 +62,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
 
     }
     func setupUI() {
-         
+        print("Настройка UI для TrackerCreationViewController")
          view.backgroundColor = .white
          view.addSubview(scrollView)
          scrollView.addSubview(contentView)
@@ -89,7 +89,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
          // Text Field
          textField.placeholder = "Введите название трекера"
          textField.clearButtonMode = .whileEditing
-         textField.backgroundColor = UIColor.backgroundDay
+         textField.backgroundColor = UIColor.background
          textField.layer.cornerRadius = 8
          
          let paddingView = UIView(frame: CGRect(x: 0, y: 0, width: 16, height: textField.frame.height))
@@ -136,7 +136,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
          colorHeaderLabel.textAlignment = .left
          
          daysCountLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
-         daysCountLabel.textColor = .blackDay
+         daysCountLabel.textColor = .black
          daysCountLabel.isHidden = !(isHabit && trackerToEdit != nil)
          
          contentView.addSubview(daysCountLabel)
@@ -241,11 +241,13 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     private func setupForMode() {
         switch mode {
         case .create:
+            print("Настройка режима создания")
             daysCountLabel.isHidden = true
             titleLabel.text = isHabit ? "Новая привычка" : "Новое нерегулярное событие"
             print("Setup for Create Mode: isHabit = \(isHabit)")
 
         case .edit(let tracker):
+            print("Настройка режима редактирования. Tracker ID: \(tracker.id)")
             isHabit = tracker.schedule != nil
             daysCountLabel.isHidden = !isHabit
             print("Setup for Edit Mode: isHabit = \(isHabit), Tracker Schedule: \(String(describing: tracker.schedule))")
@@ -288,25 +290,20 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
 
     
     func updateCreateButtonState() {
+        print("Обновление состояния кнопки создания")
         if allRequiredFieldsFilled() {
             createButton.isEnabled = true
-            createButton.backgroundColor = .blackDay
+            createButton.backgroundColor = .black
         } else {
             createButton.isEnabled = false
             createButton.backgroundColor = .gray
         }
     }
     
-//    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        return isHabit ? 2 : 1
-//    }
-    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        let numberOfRows = isHabit ? 2 : 1
-        print("Number of rows in section \(section): \(numberOfRows), isHabit: \(isHabit)")
-        return numberOfRows
+        return isHabit ? 2 : 1
     }
-
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell
         
@@ -343,7 +340,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
         }
         
-        cell.backgroundColor = .backgroundDay
+        cell.backgroundColor = .background
         cell.layer.cornerRadius = 8
         cell.clipsToBounds = true
         cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
@@ -374,17 +371,20 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
     
     func didSelectColor(_ color: UIColor) {
+        print("Выбран цвет: \(color)")
         selectedColor = color
         updateCreateButtonState()
     }
     
     func didSelectEmoji(_ emoji: String) {
+        print("Выбрано эмодзи: \(emoji)")
         selectedEmoji = emoji
         updateCreateButtonState()
     }
     
     
     func didSelectCategory(_ category: TrackerCategory) {
+        print("Выбрана категория: \(category.title)")
         selectedCategory = category
         print("Выбрана категория: \(category.title)")
         let categoryCellIndexPath = IndexPath(row: 0, section: 0)
@@ -465,6 +465,10 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     
     @objc private func saveTracker() {
         print("saveTracker вызван")
+        guard let trackerName = textField.text, !trackerName.isEmpty else {
+                print("Ошибка: Название трекера пустое")
+                return
+            }
         guard let trackerName = textField.text, !trackerName.isEmpty,
               let selectedEmoji = selectedEmoji,
               let selectedColor = selectedColor,
@@ -516,4 +520,3 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
 
 }
-

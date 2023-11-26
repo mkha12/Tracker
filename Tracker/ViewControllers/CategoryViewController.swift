@@ -137,7 +137,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath) {
         cell.textLabel?.text = viewModel?.categories[indexPath.row].title
         
-        cell.backgroundColor = UIColor.backgroundDay
+        cell.backgroundColor = UIColor.background
         cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
         cell.textLabel?.backgroundColor = UIColor.clear
         cell.layer.cornerRadius = 8

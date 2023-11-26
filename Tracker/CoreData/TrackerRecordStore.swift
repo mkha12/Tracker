@@ -84,7 +84,7 @@ final class TrackerRecordStore: NSObject {
         do {
             try context.save()
         } catch {
-            print("Failed to save context: \(error)")
+            print("Failed to save context в записях : \(error.localizedDescription)")
         }
     }
     

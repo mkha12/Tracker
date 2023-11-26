@@ -64,29 +64,17 @@ final class TrackerCategoryStore: NSObject {
             print("Ошибка при сохранении контекста: \(error)")
         }
     }
-//    
-//    func fetchCategoryCoreData(for trackerCategory: TrackerCategory) -> TrackerCategoryCoreData? { // добавила чторбы работали категории
-//        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
-//        fetchRequest.predicate = NSPredicate(format: "title == %@", trackerCategory.title)
-//        do {
-//            let results = try context.fetch(fetchRequest)
-//            return results.first
-//        } catch {
-//            return nil
-//        }
-//    }
-    func fetchCategoryCoreData(for trackerCategory: TrackerCategory) -> TrackerCategoryCoreData? {
+
+    func fetchCategoryCoreData(for trackerCategory: TrackerCategory) -> TrackerCategoryCoreData? { // добавила чторбы работали категории
         let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", trackerCategory.title)
         do {
             let results = try context.fetch(fetchRequest)
             return results.first
         } catch {
-            print("Ошибка при поиске категории CoreData: \(error)")
             return nil
         }
     }
-
     
 }
 
@@ -103,3 +91,18 @@ extension TrackerCategory {
         self.trackers = (categoryCoreData.trackers?.allObjects as? [TrackerCoreData])?.map(Tracker.init) ?? []
     }
 }
+extension TrackerCategory {
+    func coreDataObject(context: NSManagedObjectContext) -> TrackerCategoryCoreData {
+        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "title == %@", self.title)
+
+        if let existingCategory = try? context.fetch(fetchRequest).first {
+            return existingCategory
+        } else {
+            let newCategory = TrackerCategoryCoreData(context: context)
+            newCategory.title = self.title
+            return newCategory
+        }
+    }
+}
+

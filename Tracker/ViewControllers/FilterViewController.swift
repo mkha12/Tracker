@@ -14,7 +14,7 @@ protocol FilterViewControllerDelegate: AnyObject {
 
 class FilterViewController: UITableViewController {
     weak var delegate: FilterViewControllerDelegate?
-    var selectedFilter: TrackerFilter = .today // Значение по умолчанию или полученное извне
+    var selectedFilter: TrackerFilter = .today
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,10 +25,7 @@ class FilterViewController: UITableViewController {
     
     private func setupNavigationBar() {
         self.title = "Фильтры"
-        // Добавление кнопок или других элементов навигации, если необходимо
     }
-
-    // MARK: - Table View Data Source
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
     }
@@ -49,12 +46,15 @@ class FilterViewController: UITableViewController {
         if let filter = TrackerFilter(rawValue: indexPath.row) {
             selectedFilter = filter
             delegate?.didChooseFilter(filter.rawValue)
+            
             tableView.reloadData()
+            dismiss(animated: true, completion: nil)
         }
     }
+    
+    
 }
 
-// Расширение для добавления описания фильтров
 extension TrackerFilter: CaseIterable {
     var description: String {
         switch self {
