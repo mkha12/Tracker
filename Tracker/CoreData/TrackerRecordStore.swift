@@ -65,6 +65,20 @@ final class TrackerRecordStore: NSObject {
             return false
         }
     }
+    
+    func recordExistsBeforeDate(trackerId: UUID, date: Date) -> Bool {
+        let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "trackerId == %@ AND date < %@", trackerId as CVarArg, date.startOfDay as CVarArg)
+        
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count > 0
+        } catch {
+            print("Failed to count TrackerRecordCoreData: \(error)")
+            return false
+        }
+    }
+
 
     func removeRecordFor(trackerId: UUID, date: Date) {
         let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()

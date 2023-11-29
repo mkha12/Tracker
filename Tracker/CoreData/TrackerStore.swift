@@ -54,6 +54,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     }
     
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker {
+        print("Создается трекер с расписанием: \(schedule)")
         let tracker = TrackerCoreData(context: context)
         tracker.id = id
         tracker.name = name

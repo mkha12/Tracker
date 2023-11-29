@@ -225,7 +225,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             updatedVisibleCategories.append(pinnedCategory)
         }
         updatedVisibleCategories += categories.filter { !$0.trackers.isEmpty }
-
         visibleCategories = updatedVisibleCategories
         collectionView.reloadData()
     }
@@ -238,33 +237,30 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         filterVisibleCategories()
         collectionView.reloadData()
     }
-    
+
+
     private func filterVisibleCategories() {
         let currentWeekday = currentDate.weekday
 
         if let query = searchBar.text, !query.isEmpty {
             visibleCategories = categories.map { category in
-                   let filteredTrackers = category.trackers.filter { tracker in
-                       if tracker.schedule == nil {
-                           let recordExistsToday = recordStore?.recordExistsFor(trackerId: tracker.id, date: currentDate) ?? false
-                           // Трекер должен быть скрыт, если он выполнен и сегодняшняя дата не совпадает с датой выполнения
-                           return !recordExistsToday || currentDate == datePicker.date
-                       } else {
-                           return tracker.schedule?[currentWeekday] ?? true
-                       }
-                   }
-                   return TrackerCategory(title: category.title, trackers: filteredTrackers)
-               }.filter { !$0.trackers.isEmpty }
-            
+                let filteredTrackers = category.trackers.filter { tracker in
+                    if let schedule = tracker.schedule, schedule.isEmpty {
+                        let isCompletedBeforeToday = recordStore?.recordExistsBeforeDate(trackerId: tracker.id, date: currentDate) ?? false
+                        return !isCompletedBeforeToday
+                    } else {
+                        return tracker.schedule?[currentWeekday] ?? true
+                    }
+                }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
         } else {
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
-                    if tracker.schedule == nil {
-                        // Для нерегулярных трекеров проверяем, выполнен ли он на текущий день
-                        let recordExistsToday = recordStore?.recordExistsFor(trackerId: tracker.id, date: currentDate) ?? false
-                        return !recordExistsToday && (!completedTrackers.contains(tracker.id) || currentDate == datePicker.date)
+                    if let schedule = tracker.schedule, schedule.isEmpty {
+                        let isCompletedBeforeToday = recordStore?.recordExistsBeforeDate(trackerId: tracker.id, date: currentDate) ?? false
+                        return !isCompletedBeforeToday
                     } else {
-                        // Для регулярных трекеров проверяем соответствие расписанию
                         return tracker.schedule?[currentWeekday] ?? true
                     }
                 }
@@ -402,7 +398,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
 extension TrackersViewController {
     
     func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return visibleCategories.count
+        return visibleCategories.filter { !$0.trackers.isEmpty }.count
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -466,14 +462,18 @@ extension TrackersViewController {
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
         switch kind {
         case UICollectionView.elementKindSectionHeader:
-            let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.reuseIdentifier, for: indexPath) as! CategoryHeader
-            header.configure(with: visibleCategories[indexPath.section].title)
-            return header
+            let category = visibleCategories[indexPath.section]
+            if !category.trackers.isEmpty {
+                let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.reuseIdentifier, for: indexPath) as! CategoryHeader
+                header.configure(with: category.title)
+                return header
+            }
         default:
             assert(false, "Invalid element type")
         }
+        return UICollectionReusableView()
     }
-    
+
     
 }
 
@@ -625,3 +625,24 @@ extension TrackersViewController {
 }
 
 
+extension TrackersViewController {
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
+    ) -> UITargetedPreview? {
+        guard let indexPath = configuration.identifier as? IndexPath,
+              let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell else {
+            return nil
+        }
+
+        cell.layoutIfNeeded() 
+
+        let parameters = UIPreviewParameters()
+        parameters.backgroundColor = .clear
+        let preview = UITargetedPreview(view: cell.trackerView, parameters: parameters)
+        return preview
+    }
+
+
+}

@@ -243,6 +243,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             titleLabel.text = isHabit ? "Новая привычка" : "Новое нерегулярное событие"
 
         case .edit(let tracker):
+            print("Редактируемый трекер: \(tracker.name), расписание: \(String(describing: tracker.schedule))")
             isHabit = tracker.schedule != nil
             daysCountLabel.isHidden = !isHabit
             titleLabel.text = isHabit ? "Редактирование привычки" : "Редактирование нерегулярного события"
