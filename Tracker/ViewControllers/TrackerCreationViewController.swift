@@ -45,7 +45,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
 
 
     override func viewDidLoad() {
-        print("TrackerCreationViewController viewDidLoad. isHabit: \(isHabit)")
         super.viewDidLoad()
         self.navigationItem.hidesBackButton = true
         tableView.delegate = self
@@ -62,7 +61,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
 
     }
     func setupUI() {
-        print("Настройка UI для TrackerCreationViewController")
          view.backgroundColor = .white
          view.addSubview(scrollView)
          scrollView.addSubview(contentView)
@@ -241,16 +239,12 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     private func setupForMode() {
         switch mode {
         case .create:
-            print("Настройка режима создания")
             daysCountLabel.isHidden = true
             titleLabel.text = isHabit ? "Новая привычка" : "Новое нерегулярное событие"
-            print("Setup for Create Mode: isHabit = \(isHabit)")
 
         case .edit(let tracker):
-            print("Настройка режима редактирования. Tracker ID: \(tracker.id)")
             isHabit = tracker.schedule != nil
             daysCountLabel.isHidden = !isHabit
-            print("Setup for Edit Mode: isHabit = \(isHabit), Tracker Schedule: \(String(describing: tracker.schedule))")
             titleLabel.text = isHabit ? "Редактирование привычки" : "Редактирование нерегулярного события"
             
             textField.text = tracker.name
@@ -262,7 +256,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
                         daysCountLabel.text = daysCountText(for: daysCount)
                     }
             
-            print("Режим редактирования, isHabit: \(isHabit), расписание: \(tracker.schedule != nil)")
         }
         tableView.reloadData()
     }
@@ -278,19 +271,12 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
         let isCategorySelected = selectedCategory != nil
         let isScheduleValid = isHabit ? selectedSchedule != nil : true
 
-        print("TextField filled: \(isTextFieldFilled)")
-        print("Emoji selected: \(isEmojiSelected)")
-        print("Color selected: \(isColorSelected)")
-        print("Category selected: \(isCategorySelected)")
-        print("Schedule valid: \(isScheduleValid)")
-
         return isTextFieldFilled && isEmojiSelected && isColorSelected && isCategorySelected && isScheduleValid
     }
 
 
     
     func updateCreateButtonState() {
-        print("Обновление состояния кнопки создания")
         if allRequiredFieldsFilled() {
             createButton.isEnabled = true
             createButton.backgroundColor = .black
@@ -313,7 +299,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
                 let categoryDetailText = selectedCategory?.title ?? ""
                 cell.textLabel?.attributedText = attributedString(for: "Категория", detail: categoryDetailText)
             } else {
-                print("Configuring Schedule Cell: Schedule = \(String(describing: selectedSchedule))")
                 cell = tableView.dequeueReusableCell(withIdentifier: "ScheduleCell", for: indexPath)
                 if let selectedSchedule = selectedSchedule {
                     let allDays: [WeekDay] = [.sunday, .monday, .tuesday, .wednesday, .thursday, .friday, .saturday]
@@ -322,7 +307,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
                     if allDays.allSatisfy({ selectedSchedule[$0] == true }) {
                         scheduleText = "Каждый день"
                     } else {
-                        print("Configuring Category Cell for non-habit tracker")
                         let activeDays = selectedSchedule.compactMap { (day, isActive) -> String? in
                             return isActive ? day.getShortName() : nil
                         }
@@ -371,22 +355,18 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
     
     func didSelectColor(_ color: UIColor) {
-        print("Выбран цвет: \(color)")
         selectedColor = color
         updateCreateButtonState()
     }
     
     func didSelectEmoji(_ emoji: String) {
-        print("Выбрано эмодзи: \(emoji)")
         selectedEmoji = emoji
         updateCreateButtonState()
     }
     
     
     func didSelectCategory(_ category: TrackerCategory) {
-        print("Выбрана категория: \(category.title)")
         selectedCategory = category
-        print("Выбрана категория: \(category.title)")
         let categoryCellIndexPath = IndexPath(row: 0, section: 0)
         categoryCell.textLabel?.text = category.title
         categoryCell.textLabel?.font = UIFont.systemFont(ofSize: 12)
@@ -457,16 +437,13 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
     
     @objc private func cancelCreation() {
-        print("вызвано отменить cancelCreation")
         //dismiss(animated: true, completion: nil)
         navigationController?.popToRootViewController(animated: true)
     }
     
     
     @objc private func saveTracker() {
-        print("saveTracker вызван")
         guard let trackerName = textField.text, !trackerName.isEmpty else {
-                print("Ошибка: Название трекера пустое")
                 return
             }
         guard let trackerName = textField.text, !trackerName.isEmpty,
@@ -482,13 +459,11 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
 
         switch mode {
         case .create:
-            print("Создание трекера в creation: \(trackerName), \(selectedEmoji), \(selectedColor)")
             let newTracker = trackerStore.createTracker(id: UUID(), name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
             addOrUpdateTrackerInCategory(newTracker)
             delegate?.didCreateTracker(tracker: newTracker, categoryName: selectedCategory?.title ?? "Без категории")
 
         case .edit(let existingTracker):
-            print("Обновление трекера creation: \(trackerName), \(selectedEmoji), \(selectedColor)")
             let updatedTracker = Tracker(id: existingTracker.id, name: trackerName, color: selectedColor, emoji: selectedEmoji, schedule: selectedSchedule ?? [:])
                 trackerStore.updateTracker(updatedTracker, category: selectedCategory)
                 addOrUpdateTrackerInCategory(updatedTracker)

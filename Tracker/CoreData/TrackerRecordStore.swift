@@ -3,6 +3,7 @@ import CoreData
 
 protocol TrackerRecordStoreDelegate: AnyObject {
     func didChangeRecords(records: [TrackerRecord])
+    
 }
 
 final class TrackerRecordStore: NSObject {

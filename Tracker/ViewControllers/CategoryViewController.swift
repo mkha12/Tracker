@@ -188,8 +188,5 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
    }
 extension CategoryViewController: NewCategoryViewControllerDelegate {
     func newCategoryViewController(_ controller: NewCategoryViewController, didCreateNewCategory category: TrackerCategory) {
-        viewModel?.categories.append(category)
-        tableView.reloadData()
-        updateUIForEmptyState()
     }
 }

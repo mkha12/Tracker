@@ -14,7 +14,7 @@ protocol FilterViewControllerDelegate: AnyObject {
 
 class FilterViewController: UITableViewController {
     weak var delegate: FilterViewControllerDelegate?
-    var selectedFilter: TrackerFilter = .today
+    var selectedFilter: TrackerFilter? = nil
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,20 +37,21 @@ class FilterViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "FilterCell", for: indexPath)
         let filter = TrackerFilter(rawValue: indexPath.row)
-        cell.textLabel?.text = filter?.description // Сюда нужно добавить локализацию в зависимости от значения enum
-        cell.accessoryType = filter == selectedFilter ? .checkmark : .none
+        cell.textLabel?.text = filter?.description
+        cell.accessoryType = (filter == selectedFilter) ? .checkmark : .none
         return cell
     }
+
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if let filter = TrackerFilter(rawValue: indexPath.row) {
-            selectedFilter = filter
-            delegate?.didChooseFilter(filter.rawValue)
-            
-            tableView.reloadData()
-            dismiss(animated: true, completion: nil)
-        }
+        let filter: TrackerFilter? = TrackerFilter(rawValue: indexPath.row)
+        selectedFilter = filter
+        delegate?.didChooseFilter(filter?.rawValue ?? -1)
+        
+        tableView.reloadData()
+        dismiss(animated: true, completion: nil)
     }
+
     
     
 }

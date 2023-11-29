@@ -91,7 +91,6 @@ final class NewCategoryViewController: UIViewController {
     
     @objc private func doneButtonTapped() {
         if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
-            print("Создаем категорию с именем: \(categoryName)")
             let context = CoreDataManager.shared.persistentContainer.viewContext
             let trackerCategoryStore = TrackerCategoryStore(context: context)
             let newCategory = trackerCategoryStore.createCategory(title: categoryName, trackers: [])
@@ -99,5 +98,7 @@ final class NewCategoryViewController: UIViewController {
             navigationController?.popViewController(animated: true)
         }
     }
+    
+
     
 }

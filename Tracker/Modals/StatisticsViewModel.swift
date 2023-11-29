@@ -5,11 +5,12 @@ struct Statistic {
     let value: String
 }
 final class StatisticsViewModel {
-   
-
-    var statistics: [Statistic] = []
+    
     private let trackerStore: TrackerStoreProtocol
     private let trackerRecordStore: TrackerRecordStore
+    var onStatisticsUpdated: (() -> Void)?
+    var statistics: [Statistic] = []
+  
 
     init(trackerStore: TrackerStoreProtocol, trackerRecordStore: TrackerRecordStore) {
         self.trackerStore = trackerStore
@@ -27,11 +28,12 @@ final class StatisticsViewModel {
         let averageCompletion = calculateAverageCompletionDays(trackerRecords: allTrackerRecords, trackers: allTrackers)
 
         statistics = [
-            Statistic(title: "Лучший период", value: "\(longestStreak) дней"),
-            Statistic(title: "Идеальные дни", value: "\(perfectDays) дней"),
-            Statistic(title: "Трекеров завершено", value: "\(completedIrregularTrackers) трекеров"),
-            Statistic(title: "Среднее значение", value: "\(averageCompletion) дней")
+            Statistic(title: "Лучший период", value: "\(longestStreak)"),
+            Statistic(title: "Идеальные дни", value: "\(perfectDays)"),
+            Statistic(title: "Трекеров завершено", value: "\(completedIrregularTrackers)"),
+            Statistic(title: "Среднее значение", value: "\(averageCompletion)")
         ]
+        onStatisticsUpdated?()
     }
 
     private func calculateLongestStreak(trackerRecords: [TrackerRecord], trackers: [Tracker]) -> Int {
@@ -42,22 +44,27 @@ final class StatisticsViewModel {
             var maxStreak = 0
             var lastDate: Date?
 
-            for record in trackerRecords.filter({ $0.trackerId == tracker.id }).sorted(by: { $0.date < $1.date }) {
-                if let lastDate = lastDate, Calendar.current.isDate(record.date, inSameDayAs: lastDate) {
-                    currentStreak += 1
+            let sortedRecords = trackerRecords.filter { $0.trackerId == tracker.id }.sorted(by: { $0.date < $1.date })
+            for record in sortedRecords {
+                if let lastDate = lastDate {
+                    let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: lastDate)!
+                    if record.date >= nextDay {
+                        currentStreak += 1
+                    } else {
+                        currentStreak = 1
+                    }
                 } else {
                     currentStreak = 1
                 }
-                maxStreak = max(maxStreak, currentStreak)
                 lastDate = record.date
+                maxStreak = max(maxStreak, currentStreak)
             }
 
             longestStreak = max(longestStreak, maxStreak)
         }
-
+        onStatisticsUpdated?()
         return longestStreak
     }
-
 
     private func countPerfectDays(trackerRecords: [TrackerRecord], trackers: [Tracker]) -> Int {
         let groupedRecords = Dictionary(grouping: trackerRecords, by: { $0.date.startOfDay })
@@ -65,14 +72,22 @@ final class StatisticsViewModel {
 
         for (date, records) in groupedRecords {
             let completedTrackers = Set(records.map { $0.trackerId })
-            let allTrackersCompleted = trackers.allSatisfy { tracker in completedTrackers.contains(tracker.id) }
-            if allTrackersCompleted {
+            let activeTrackers = trackers.filter { tracker in
+                tracker.schedule?[date.weekday] ?? true 
+            }
+
+            let allActiveTrackersCompleted = activeTrackers.allSatisfy { tracker in
+                completedTrackers.contains(tracker.id)
+            }
+
+            if allActiveTrackersCompleted {
                 perfectDaysCount += 1
             }
         }
 
         return perfectDaysCount
     }
+
 
     private func countCompletedIrregularTrackers(trackerRecords: [TrackerRecord], trackers: [Tracker]) -> Int {
             let irregularTrackers = trackers.filter { $0.schedule == nil }
@@ -90,9 +105,26 @@ final class StatisticsViewModel {
             totalDays += uniqueDays.count
             totalTrackers += 1
         }
-
+        onStatisticsUpdated?()
         return totalTrackers > 0 ? totalDays / totalTrackers : 0
     }
 
 }
 
+extension StatisticsViewModel: TrackerStoreDelegate, TrackerRecordStoreDelegate {
+    func didChangeTrackerData() {
+        loadStatistics()
+        onStatisticsUpdated?()
+    }
+    
+    func didChangeTrackers(trackers: [Tracker]) {
+        loadStatistics()
+        onStatisticsUpdated?()
+    }
+    
+    func didChangeRecords(records: [TrackerRecord]) {
+        loadStatistics()
+        onStatisticsUpdated?()
+    }
+    
+}

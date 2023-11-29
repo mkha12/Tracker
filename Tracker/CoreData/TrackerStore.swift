@@ -12,6 +12,7 @@ protocol TrackerStoreProtocol {
 
 protocol TrackerStoreDelegate: AnyObject {
     func didChangeTrackers(trackers: [Tracker])
+    func didChangeTrackerData()
 }
 
 
@@ -61,7 +62,6 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         tracker.schedule = schedule as NSObject
         saveContext()
         CoreDataManager.shared.saveContext()
-        print("Создан трекер: \(tracker)")
         return Tracker(trackerCoreData: tracker)
     }
     
@@ -95,13 +95,11 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     
     func fetchAllTrackers() -> [Tracker] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
-        print("Загружены все трекеры: \(fetchedObjects)")
         return fetchedObjects.map { Tracker(trackerCoreData: $0) }
     }
     
     func saveContext() {
         if context.hasChanges {
-            print("Context has changes before saving")
             do {
                 try context.save()
                 print("Context saved successfully")
@@ -141,18 +139,15 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         }
     }
     func deleteTracker(_ tracker: Tracker) {
-        print("Попытка удалить трекер: \(tracker.name)")
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
 
         do {
             let results = try context.fetch(fetchRequest)
             if let trackerToDelete = results.first {
-                print("Трекер найден в Core Data и будет удален: \(trackerToDelete.name ?? "нет имени")")
                 let recordFetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
                 recordFetchRequest.predicate = NSPredicate(format: "trackerId == %@", tracker.id as CVarArg)
                 let recordsToDelete = try context.fetch(recordFetchRequest)
-                print("Найдено записей для удаления: \(recordsToDelete.count)")
                 for record in recordsToDelete {
                     context.delete(record)
                 }
@@ -160,7 +155,6 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
                 saveContext()
 
                 delegate?.didChangeTrackers(trackers: fetchAllTrackers())
-                print("Трекер и связанные записи удалены")
             }
         } catch {
             print("Ошибка при удалении трекера: \(error)")

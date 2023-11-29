@@ -37,7 +37,7 @@ final class TrackerCategoryStore: NSObject {
             print("Failed to initialize FetchedResultsController: \(error)")
         }
     }
-    
+
     func createCategory(title: String, trackers: [Tracker]) -> TrackerCategory {
         let category = TrackerCategoryCoreData(context: context)
         category.title = title
@@ -50,6 +50,8 @@ final class TrackerCategoryStore: NSObject {
         CoreDataManager.shared.saveContext()  // сохранение в persistentContainer
         return TrackerCategory(categoryCoreData: category)
     }
+
+
     
     func fetchAllCategories() -> [TrackerCategory] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []

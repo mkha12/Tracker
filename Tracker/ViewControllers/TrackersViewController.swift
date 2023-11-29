@@ -29,6 +29,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var pinnedCategory = TrackerCategory(title: "Закрепленные", trackers: [])
     var trackerCategoryMap: [UUID: Int] = [:]
     let filterButton = UIButton(type: .system)
+    var recordStore: TrackerRecordStore?
+
  
     
     override func viewDidLoad() {
@@ -41,6 +43,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext, categoryStore: categoryStore!)
 
         trackers = trackerStore?.fetchAllTrackers() ?? []
+        recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
         
         updateCategories()
         loadTrackers()
@@ -241,18 +244,29 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
 
         if let query = searchBar.text, !query.isEmpty {
             visibleCategories = categories.map { category in
-                let filteredTrackers = category.trackers.filter { tracker in
-                    let isNameMatching = tracker.name.lowercased().contains(query.lowercased())
-                    let isScheduledTodayOrNoSchedule = tracker.schedule?[currentWeekday] ?? true
-                    return isNameMatching && isScheduledTodayOrNoSchedule
-                }
-                return TrackerCategory(title: category.title, trackers: filteredTrackers)
-            }.filter { !$0.trackers.isEmpty }
+                   let filteredTrackers = category.trackers.filter { tracker in
+                       if tracker.schedule == nil {
+                           let recordExistsToday = recordStore?.recordExistsFor(trackerId: tracker.id, date: currentDate) ?? false
+                           // Трекер должен быть скрыт, если он выполнен и сегодняшняя дата не совпадает с датой выполнения
+                           return !recordExistsToday || currentDate == datePicker.date
+                       } else {
+                           return tracker.schedule?[currentWeekday] ?? true
+                       }
+                   }
+                   return TrackerCategory(title: category.title, trackers: filteredTrackers)
+               }.filter { !$0.trackers.isEmpty }
+            
         } else {
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
-                    let isScheduledTodayOrNoSchedule = tracker.schedule?[currentWeekday] ?? true
-                    return isScheduledTodayOrNoSchedule
+                    if tracker.schedule == nil {
+                        // Для нерегулярных трекеров проверяем, выполнен ли он на текущий день
+                        let recordExistsToday = recordStore?.recordExistsFor(trackerId: tracker.id, date: currentDate) ?? false
+                        return !recordExistsToday && (!completedTrackers.contains(tracker.id) || currentDate == datePicker.date)
+                    } else {
+                        // Для регулярных трекеров проверяем соответствие расписанию
+                        return tracker.schedule?[currentWeekday] ?? true
+                    }
                 }
                 return TrackerCategory(title: category.title, trackers: filteredTrackers)
             }.filter { !$0.trackers.isEmpty }
@@ -260,7 +274,9 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
 
         updateEmptyTrackersVisibility()
         collectionView.reloadData()
-            }
+    }
+
+
 
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
@@ -286,8 +302,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }
         
         trackers = trackerStore.fetchAllTrackers()
-        print("Загружены трекеры: \(trackers)")
         updateCategories()
+        updateCompletedTrackers()
         filterVisibleCategories()
         collectionView.reloadData()
         
@@ -317,7 +333,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     private func updateCompletedTrackers() {
         guard let trackerStore = trackerStore else {
-            print("Error: trackerStore is nil")
             return
         }
 
@@ -332,19 +347,23 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     }
     
     func didChooseFilter(_ filterIndex: Int) {
-        guard let filter = TrackerFilter(rawValue: filterIndex) else { return }
-        switch filter {
-        case .all:
+        if filterIndex == -1 {
             visibleCategories = categories
-        case .today:
-            filterForToday()
-        case .completed:
-            filterForCompleted()
-        case .notCompleted:
-            filterForNotCompleted()
+        } else if let filter = TrackerFilter(rawValue: filterIndex) {
+            switch filter {
+            case .all:
+                visibleCategories = categories
+            case .today:
+                filterForToday()
+            case .completed:
+                filterForCompleted()
+            case .notCompleted:
+                filterForNotCompleted()
+            }
         }
         collectionView.reloadData()
     }
+
 
     func filterForToday() {
         let currentWeekday = currentDate.weekday
@@ -425,8 +444,6 @@ extension TrackersViewController {
         return cell
     }
 
-
-    
     private func handleAddButtonTap(for tracker: Tracker) {
         if currentDate > Date() { return }
 
@@ -441,9 +458,6 @@ extension TrackersViewController {
         }
         loadTrackers()
     }
-
-
-
     
     func countDays(for trackerId: UUID) -> Int {
         return trackerRecords.filter { $0.trackerId == trackerId }.count
@@ -554,7 +568,6 @@ extension TrackersViewController {
                     DispatchQueue.main.async {
                         self.collectionView.reloadData()
                     }
-                    print("Трекер удален и интерфейс обновлен")
                     AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "delete"])
                 }
 
@@ -567,7 +580,6 @@ extension TrackersViewController {
 
 extension TrackersViewController {
     func pinTracker(_ tracker: Tracker) {
-        print("Pinning tracker: \(tracker.name)")
         if let originalCategoryIndex = categories.firstIndex(where: { $0.trackers.contains(where: { $0.id == tracker.id }) }) {
              trackerCategoryMap[tracker.id] = originalCategoryIndex
          }
@@ -582,16 +594,12 @@ extension TrackersViewController {
 
         updateVisibleCategories()
         collectionView.reloadData()
-        print("Tracker pinned, categories updated")
     }
 
     func unpinTracker(_ tracker: Tracker) {
-        print("Начало процесса открепления трекера: \(tracker.name)")
 
         let updatedPinnedTrackers = pinnedCategory.trackers.filter { $0.id != tracker.id }
         pinnedCategory = TrackerCategory(title: pinnedCategory.title, trackers: updatedPinnedTrackers)
-
-        print("Трекер откреплен от закрепленных, текущее количество закрепленных трекеров: \(pinnedCategory.trackers.count)")
 
         if let originalCategoryIndex = trackerCategoryMap[tracker.id], originalCategoryIndex < categories.count {
                 var originalCategory = categories[originalCategoryIndex]
@@ -601,12 +609,10 @@ extension TrackersViewController {
                     categories[originalCategoryIndex] = TrackerCategory(title: originalCategory.title, trackers: updatedTrackers)
                 }
             } else {
-            print("Не найден индекс оригинальной категории для трекера \(tracker.name)")
         }
 
         updateVisibleCategories()
         collectionView.reloadData()
-        print("Коллекция обновлена")
     }
 
 }
@@ -619,25 +625,3 @@ extension TrackersViewController {
 }
 
 
-
-//extension TrackersViewController {
-//
-//    func collectionView(
-//        _ collectionView: UICollectionView,
-//        previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration
-//    ) -> UITargetedPreview? {
-//        guard let indexPath = configuration.identifier as? IndexPath,
-//              let cell = collectionView.cellForItem(at: indexPath) as? TrackerCell else {
-//            return nil
-//        }
-//
-//        cell.layoutIfNeeded() // Обновление layout
-//
-//        let parameters = UIPreviewParameters()
-//        parameters.backgroundColor = .clear
-//        let preview = UITargetedPreview(view: cell.trackerView, parameters: parameters)
-//        return preview
-//    }
-//
-//
-//}
