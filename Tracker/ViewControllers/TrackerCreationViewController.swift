@@ -172,7 +172,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
              scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
              scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
-             titleLabel.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 80),
+             titleLabel.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 25),
              titleLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
              titleLabel.heightAnchor.constraint(equalToConstant: 16),
          
@@ -181,8 +181,8 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
              daysCountLabel.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 38),
              daysCountLabel.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
              
-             textField.topAnchor.constraint(equalTo: daysCountLabel.bottomAnchor, constant: 40), // Расстояние от daysCountLabel
-                 textField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+             textField.topAnchor.constraint(equalTo: daysCountLabel.bottomAnchor, constant: 0), // Расстояние от daysCountLabel
+            textField.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
                  textField.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
                  textField.heightAnchor.constraint(equalToConstant: 75), // Высота textField
 
@@ -438,7 +438,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
     }
     
     @objc private func cancelCreation() {
-        //dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
         navigationController?.popToRootViewController(animated: true)
     }
     

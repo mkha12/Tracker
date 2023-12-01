@@ -45,6 +45,8 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     func setupUI() {
+        
+        navigationController?.isNavigationBarHidden = true
 
         view.backgroundColor = .white
         
@@ -91,7 +93,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         categoryTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            tableView.topAnchor.constraint(equalTo: categoryTitleLabel.bottomAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
@@ -108,7 +110,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
-            categoryTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            categoryTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25),
             categoryTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             categoryTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])

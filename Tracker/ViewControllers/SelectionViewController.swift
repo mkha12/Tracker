@@ -47,6 +47,12 @@ final class TrackerTypeSelectionViewController: UIViewController, CreateTrackerD
         setupUI()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: false)
+    }
+
+    
     func setupUI() {
         view.addSubview(habitButton)
         view.addSubview(irregularEventButton)
@@ -65,7 +71,7 @@ final class TrackerTypeSelectionViewController: UIViewController, CreateTrackerD
             irregularEventButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             irregularEventButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
             
