@@ -30,7 +30,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var trackerCategoryMap: [UUID: Int] = [:]
     let filterButton = UIButton(type: .system)
     var recordStore: TrackerRecordStore?
-
+    var currentFilter: TrackerFilter = .all
  
     
     override func viewDidLoad() {
@@ -277,8 +277,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
         let noTrackersAvailable = visibleCategories.isEmpty
-        
-        
+
+
         if isSearchActive && noTrackersAvailable {
             emptyTrackersStackView.isHidden = true
             notFoundStackView.isHidden = false
@@ -290,7 +290,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             notFoundStackView.isHidden = true
         }
     }
-    
+  
+
     func loadTrackers() {
         guard let trackerStore = trackerStore else {
             print("Error: trackerStore is nil")
@@ -318,17 +319,20 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         collectionView.reloadData()
     }
     
+ 
     @objc private func showFilterOptions() {
         AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "func showFilterOptions"])
         let filterVC = FilterViewController()
         filterVC.delegate = self
+        filterVC.selectedFilter = currentFilter // передаем текущий фильтр
         let navigationController = UINavigationController(rootViewController: filterVC)
         present(navigationController, animated: true)
     }
-    
+
     
     private func updateCompletedTrackers() {
         guard let trackerStore = trackerStore else {
+            print("Tracker store is nil")
             return
         }
 
@@ -338,28 +342,23 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         for tracker in trackerStore.fetchAllTrackers() {
             if recordStore.recordExistsFor(trackerId: tracker.id, date: currentDate) {
                 completedTrackers.insert(tracker.id)
+                print("Completed tracker: \(tracker.id)")
+            } else {
+                print("Not completed tracker: \(tracker.id)")
             }
         }
     }
+
     
     func didChooseFilter(_ filterIndex: Int) {
         if filterIndex == -1 {
-            visibleCategories = categories
+            currentFilter = .all
         } else if let filter = TrackerFilter(rawValue: filterIndex) {
-            switch filter {
-            case .all:
-                visibleCategories = categories
-            case .today:
-                filterForToday()
-            case .completed:
-                filterForCompleted()
-            case .notCompleted:
-                filterForNotCompleted()
-            }
+            currentFilter = filter
         }
+        filterVisibleCategories() // Обновление списка
         collectionView.reloadData()
     }
-
 
     func filterForToday() {
         let currentWeekday = currentDate.weekday
@@ -371,25 +370,28 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }.filter { !$0.trackers.isEmpty }
     }
 
-
     func filterForCompleted() {
         visibleCategories = categories.map { category in
             let filteredTrackers = category.trackers.filter { tracker in
-                completedTrackers.contains(tracker.id)
+                let isCompleted = completedTrackers.contains(tracker.id)
+                print("Filter for completed: \(tracker.id) - \(isCompleted)")
+                return isCompleted
             }
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
     }
-
 
     func filterForNotCompleted() {
         visibleCategories = categories.map { category in
             let filteredTrackers = category.trackers.filter { tracker in
-                !completedTrackers.contains(tracker.id)
+                let isNotCompleted = !completedTrackers.contains(tracker.id)
+                print("Filter for not completed: \(tracker.id) - \(isNotCompleted)")
+                return isNotCompleted
             }
             return TrackerCategory(title: category.title, trackers: filteredTrackers)
         }.filter { !$0.trackers.isEmpty }
     }
+
 
 
 
@@ -460,18 +462,17 @@ extension TrackersViewController {
     }
 
     func collectionView(_ collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, at indexPath: IndexPath) -> UICollectionReusableView {
-        switch kind {
-        case UICollectionView.elementKindSectionHeader:
-            let category = visibleCategories[indexPath.section]
-            if !category.trackers.isEmpty {
-                let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.reuseIdentifier, for: indexPath) as! CategoryHeader
-                header.configure(with: category.title)
-                return header
-            }
-        default:
-            assert(false, "Invalid element type")
+        guard kind == UICollectionView.elementKindSectionHeader else {
+            fatalError("Invalid element type")
         }
-        return UICollectionReusableView()
+
+        let header = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: CategoryHeader.reuseIdentifier, for: indexPath) as! CategoryHeader
+        
+        let category = visibleCategories[indexPath.section]
+        header.configure(with: category.title)
+        header.isHidden = category.trackers.isEmpty // Скрыть заголовок, если нет трекеров
+        
+        return header
     }
 
     
@@ -492,8 +493,12 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        return CGSize(width: collectionView.bounds.width, height: 50)
-    }
+            if visibleCategories[section].trackers.isEmpty {
+                return CGSize.zero
+            } else {
+                return CGSize(width: collectionView.bounds.width, height: 50)
+            }
+        }
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
         return CGSize(width: 167, height: 148)
     }
@@ -505,6 +510,8 @@ extension TrackersViewController: UICollectionViewDelegateFlowLayout {
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
         return 8
     }
+    
+    
 }
 extension TrackersViewController {
     
@@ -550,33 +557,57 @@ extension TrackersViewController {
         
 
                 }
+
             let deleteAction = UIAction(
-                title: "Удалить",
-                image: nil,
-                identifier: nil,
-                discoverabilityTitle: nil,
-                attributes: .destructive,
-                state: .off) { [weak self] action in
-                    guard let self = self else { return }
-                    let trackerToDelete = self.visibleCategories[indexPath.section].trackers[indexPath.item]
+                        title: "Удалить",
+                        image: nil,
+                        identifier: nil,
+                        discoverabilityTitle: nil,
+                        attributes: .destructive,
+                        state: .off) { [weak self] action in
+                            guard let self = self else { return }
+                            let trackerToDelete = self.visibleCategories[indexPath.section].trackers[indexPath.item]
+                            self.showDeletionAlert(for: trackerToDelete, at: indexPath)
                     
-                    self.trackerStore?.deleteTracker(trackerToDelete)
-                    self.loadTrackers()
-                    self.updateCategories()
-                    self.filterVisibleCategories()
-
-                    DispatchQueue.main.async {
-                        self.collectionView.reloadData()
-                    }
-                    AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "delete"])
                 }
-
-
 
             return UIMenu(title: "", children: [pinAction, editAction, deleteAction])
         }
     }
-}
+    
+    func showDeletionAlert(for tracker: Tracker, at indexPath: IndexPath) {
+            let alertController = UIAlertController(
+                title: nil,
+                message: "Уверены, что хотите удалить этот трекер?",
+                preferredStyle: .actionSheet
+            )
+
+            let deleteAction = UIAlertAction(title: "Удалить", style: .destructive) { [weak self] _ in
+                guard let self = self else { return }
+                
+                self.trackerStore?.deleteTracker(tracker)
+                self.loadTrackers()
+                self.updateCategories()
+                self.filterVisibleCategories()
+
+                DispatchQueue.main.async {
+                    self.collectionView.reloadData()
+                }
+                AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "delete"])
+            }
+
+            let cancelAction = UIAlertAction(title: "Отменить", style: .cancel)
+
+            alertController.addAction(deleteAction)
+            alertController.addAction(cancelAction)
+
+            DispatchQueue.main.async {
+                self.present(alertController, animated: true)
+            }
+        }
+    }
+
+
 
 extension TrackersViewController {
     func pinTracker(_ tracker: Tracker) {

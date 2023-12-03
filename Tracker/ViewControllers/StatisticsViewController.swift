@@ -1,6 +1,6 @@
 import UIKit
 
-final class StatisticsViewController: UIViewController, UITableViewDataSource {
+final class StatisticsViewController: UIViewController, UITableViewDataSource,UITableViewDelegate {
     
     var emptyStateImageView: UIImageView!
     var emptyStateLabel: UILabel!
@@ -12,6 +12,7 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
+    
         tableView = UITableView()
         tableView.register(StatisticTableViewCell.self, forCellReuseIdentifier: "StatisticCell")
 
@@ -26,7 +27,7 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource {
         viewModel.onStatisticsUpdated = { [weak self] in
               self?.tableView.reloadData()
           }
-
+        tableView.delegate = self
         setupUI()
         setupConstraints()
         viewModel.loadStatistics()
@@ -106,31 +107,27 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource {
         
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
            return viewModel.statistics.count
        }
-    
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "StatisticCell", for: indexPath) as! StatisticTableViewCell
-        let statistic = viewModel.statistics[indexPath.row]
-        cell.configure(with: statistic)
-        return cell
-    }
-  
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 90
-    }
-    
-    private func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        return UIView()
-    }
+       func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+           return 1
+       }
 
-    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
-           return 12
+       func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+           let cell = tableView.dequeueReusableCell(withIdentifier: "StatisticCell", for: indexPath) as! StatisticTableViewCell
+           let statistic = viewModel.statistics[indexPath.section]
+           cell.configure(with: statistic)
+           return cell
+       }
+
+       func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+           return section < viewModel.statistics.count - 1 ? 12 : 0
+       }
+
+       func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+           return UIView()
        }
        
-
-
    }

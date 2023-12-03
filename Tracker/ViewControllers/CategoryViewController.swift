@@ -178,7 +178,6 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         newCategoryVC.delegate = self
         newCategoryVC.viewModel = self.viewModel
         navigationController?.pushViewController(newCategoryVC, animated: true)
-        //present(newCategoryVC, animated: true, completion: nil)
     }
 
        
