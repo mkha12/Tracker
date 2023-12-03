@@ -17,7 +17,7 @@ protocol TrackerStoreDelegate: AnyObject {
 
 
 final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsControllerDelegate {
-   
+    
     
     private let categoryStore: TrackerCategoryStore
     private let context: NSManagedObjectContext
@@ -29,7 +29,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         super.init()
         setupFetchedResultsController()
     }
-
+    
     private lazy var fetchedResultsController: NSFetchedResultsController<TrackerCoreData> = {
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         let sortDescriptor = NSSortDescriptor(key: "name", ascending: true)
@@ -66,11 +66,11 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         return Tracker(trackerCoreData: tracker)
     }
     
-
+    
     func updateTracker(_ tracker: Tracker, category: TrackerCategory?) {
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
-
+        
         do {
             let results = try context.fetch(fetchRequest)
             if let trackerToUpdate = results.first {
@@ -78,21 +78,20 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
                 trackerToUpdate.color = tracker.color
                 trackerToUpdate.emoji = tracker.emoji
                 trackerToUpdate.schedule = tracker.schedule as? NSObject
-
-                // Обновляем категорию, если это необходимо
+                
                 if let category = category,
                    let categoryCoreData = categoryStore.fetchCategoryCoreData(for: category) {
                     trackerToUpdate.category = categoryCoreData
                 }
-
+                
                 saveContext()
             }
         } catch {
             print("Ошибка при обновлении трекера: \(error)")
         }
     }
-
-
+    
+    
     
     func fetchAllTrackers() -> [Tracker] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
@@ -142,7 +141,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     func deleteTracker(_ tracker: Tracker) {
         let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
-
+        
         do {
             let results = try context.fetch(fetchRequest)
             if let trackerToDelete = results.first {
@@ -154,14 +153,14 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
                 }
                 context.delete(trackerToDelete)
                 saveContext()
-
+                
                 delegate?.didChangeTrackers(trackers: fetchAllTrackers())
             }
         } catch {
             print("Ошибка при удалении трекера: \(error)")
         }
     }
-
+    
     
 }
 

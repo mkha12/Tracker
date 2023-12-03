@@ -31,17 +31,17 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     let filterButton = UIButton(type: .system)
     var recordStore: TrackerRecordStore?
     var currentFilter: TrackerFilter = .all
- 
+    
     
     override func viewDidLoad() {
         AnalyticsService().report(event: "open", params: ["screen": "Main"])
         super.viewDidLoad()
         self.view.backgroundColor = .white
         setupUI()
-       
+        
         categoryStore = TrackerCategoryStore(context: CoreDataManager.shared.persistentContainer.viewContext)
         trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext, categoryStore: categoryStore!)
-
+        
         trackers = trackerStore?.fetchAllTrackers() ?? []
         recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
         
@@ -53,19 +53,19 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         
     }
     
-
+    
     private func setupUI() {
         
         self.navigationItem.title = NSLocalizedString("title_trackers", comment: "")
-
+        
         let plusImage = UIImage(systemName: "plus")?.withTintColor(.black, renderingMode: .alwaysOriginal)
         let addButton = UIBarButtonItem(image: plusImage, style: .plain, target: self, action: #selector(presentAddNewTrackerScreen))
         navigationItem.leftBarButtonItem = addButton
-
-        navigationController?.navigationBar.prefersLargeTitles = true
-
         
-     
+        navigationController?.navigationBar.prefersLargeTitles = true
+        
+        
+        
         datePicker = UIDatePicker()
         datePicker.calendar.firstWeekday = 2
         datePicker.datePickerMode = .date
@@ -88,7 +88,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(collectionView)
         
-       
+        
         filterButton.setTitle(NSLocalizedString("filters", comment: ""), for: .normal)
         filterButton.backgroundColor = .blue
         filterButton.addTarget(self, action: #selector(showFilterOptions), for: .touchUpInside)
@@ -157,7 +157,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             collectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -12),
             collectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
             //не спрашивайте зачем тут 12, это я вычла 8 из тех отступов, что есть внутри самих ячеек)))
-
+            
             
             separatorView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
             separatorView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
@@ -202,7 +202,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         DispatchQueue.main.async { [weak self] in
             self?.collectionView.reloadData()
         }
-        print("Added new tracker: \(tracker.name)")
     }
     
     
@@ -210,7 +209,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         addNewTracker(tracker, toCategory: categoryName)
         collectionView.reloadData()
     }
-
+    
     @objc func presentAddNewTrackerScreen() {
         let trackerTypeSelectionVC = TrackerTypeSelectionViewController()
         trackerTypeSelectionVC.delegate = self
@@ -228,174 +227,174 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         visibleCategories = updatedVisibleCategories
         collectionView.reloadData()
     }
-
-
+    
+    
     
     @objc func dateChanged() {
         AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "func dateChanged"])
         currentDate = datePicker.date
         filterVisibleCategories()
-        collectionView.reloadData()
-    }
-
-
-    private func filterVisibleCategories() {
-        let currentWeekday = currentDate.weekday
-
-        if let query = searchBar.text, !query.isEmpty {
-            visibleCategories = categories.map { category in
-                let filteredTrackers = category.trackers.filter { tracker in
-                    if let schedule = tracker.schedule, schedule.isEmpty {
-                        let isCompletedBeforeToday = recordStore?.recordExistsBeforeDate(trackerId: tracker.id, date: currentDate) ?? false
-                        return !isCompletedBeforeToday
-                    } else {
-                        return tracker.schedule?[currentWeekday] ?? true
-                    }
-                }
-                return TrackerCategory(title: category.title, trackers: filteredTrackers)
-            }.filter { !$0.trackers.isEmpty }
-        } else {
-            visibleCategories = categories.map { category in
-                let filteredTrackers = category.trackers.filter { tracker in
-                    if let schedule = tracker.schedule, schedule.isEmpty {
-                        let isCompletedBeforeToday = recordStore?.recordExistsBeforeDate(trackerId: tracker.id, date: currentDate) ?? false
-                        return !isCompletedBeforeToday
-                    } else {
-                        return tracker.schedule?[currentWeekday] ?? true
-                    }
-                }
-                return TrackerCategory(title: category.title, trackers: filteredTrackers)
-            }.filter { !$0.trackers.isEmpty }
-        }
-
         updateEmptyTrackersVisibility()
         collectionView.reloadData()
     }
 
+    private func filterVisibleCategories() {
+        let searchText = searchBar.text?.lowercased() ?? ""
+        let isSearchActive = !searchText.isEmpty
 
+        visibleCategories = categories.flatMap { category -> [TrackerCategory] in
+            let filteredTrackers = category.trackers.filter { tracker in
+                let matchesSearch = isSearchActive ? tracker.name.lowercased().contains(searchText) : true
+                let scheduleIsEmpty = tracker.schedule?.isEmpty ?? true
+                let isCompletedOnSelectedDate = recordStore?.recordExistsFor(trackerId: tracker.id, date: currentDate) ?? false
+                let isCompletedBeforeSelectedDate = recordStore?.recordExistsBeforeDate(trackerId: tracker.id, date: currentDate) ?? false
 
+                let matchesDateAndSchedule: Bool
+                switch currentFilter {
+                case .all:
+                    matchesDateAndSchedule = scheduleIsEmpty ? !isCompletedBeforeSelectedDate : (tracker.schedule?[currentDate.weekday] ?? false)
+                case .today:
+                    matchesDateAndSchedule = scheduleIsEmpty ? !isCompletedBeforeSelectedDate : (tracker.schedule?[currentDate.weekday] ?? false)
+                case .completed:
+                    matchesDateAndSchedule = isCompletedOnSelectedDate
+                case .notCompleted:
+                    matchesDateAndSchedule = scheduleIsEmpty ? !isCompletedBeforeSelectedDate && !isCompletedOnSelectedDate : !isCompletedOnSelectedDate
+                }
+
+                return matchesSearch && matchesDateAndSchedule
+            }
+
+            return filteredTrackers.isEmpty ? [] : [TrackerCategory(title: category.title, trackers: filteredTrackers)]
+        }
+    }
+
+        
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
         let noTrackersAvailable = visibleCategories.isEmpty
 
-
-        if isSearchActive && noTrackersAvailable {
-            emptyTrackersStackView.isHidden = true
-            notFoundStackView.isHidden = false
-        } else if !isSearchActive && noTrackersAvailable {
-            emptyTrackersStackView.isHidden = false
-            notFoundStackView.isHidden = true
-        } else {
-            emptyTrackersStackView.isHidden = true
-            notFoundStackView.isHidden = true
-        }
-    }
-  
-
-    func loadTrackers() {
-        guard let trackerStore = trackerStore else {
-            print("Error: trackerStore is nil")
-            return
-        }
-        
-        trackers = trackerStore.fetchAllTrackers()
-        updateCategories()
-        updateCompletedTrackers()
-        filterVisibleCategories()
-        collectionView.reloadData()
-        
-        let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
-        trackerRecords = recordStore.fetchAllRecords()
-    }
-
-    
-    func updateCategories() {
-        guard let fetchedCategories = categoryStore?.fetchAllCategories() else {
-            return
-        }
-        
-        categories = fetchedCategories
-        filterVisibleCategories()
-        collectionView.reloadData()
-    }
-    
- 
-    @objc private func showFilterOptions() {
-        AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "func showFilterOptions"])
-        let filterVC = FilterViewController()
-        filterVC.delegate = self
-        filterVC.selectedFilter = currentFilter // передаем текущий фильтр
-        let navigationController = UINavigationController(rootViewController: filterVC)
-        present(navigationController, animated: true)
-    }
-
-    
-    private func updateCompletedTrackers() {
-        guard let trackerStore = trackerStore else {
-            print("Tracker store is nil")
-            return
-        }
-
-        let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
-        completedTrackers.removeAll()
-
-        for tracker in trackerStore.fetchAllTrackers() {
-            if recordStore.recordExistsFor(trackerId: tracker.id, date: currentDate) {
-                completedTrackers.insert(tracker.id)
-                print("Completed tracker: \(tracker.id)")
+        if noTrackersAvailable {
+            if isSearchActive {
+                notFoundStackView.isHidden = false
+                emptyTrackersStackView.isHidden = true
             } else {
-                print("Not completed tracker: \(tracker.id)")
+                emptyTrackersStackView.isHidden = false
+                notFoundStackView.isHidden = true
+            }
+        } else {
+
+            emptyTrackersStackView.isHidden = true
+            notFoundStackView.isHidden = true
+        }
+    }
+
+        
+        
+        func loadTrackers() {
+            guard let trackerStore = trackerStore else {
+                print("Error: trackerStore is nil")
+                return
+            }
+            
+            trackers = trackerStore.fetchAllTrackers()
+            updateCategories()
+            updateCompletedTrackers()
+            filterVisibleCategories()
+            collectionView.reloadData()
+            
+            let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+            trackerRecords = recordStore.fetchAllRecords()
+        }
+        
+        
+        func updateCategories() {
+            guard let fetchedCategories = categoryStore?.fetchAllCategories() else {
+                return
+            }
+            
+            categories = fetchedCategories
+            filterVisibleCategories()
+            collectionView.reloadData()
+        }
+        
+        
+        @objc private func showFilterOptions() {
+            AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "func showFilterOptions"])
+            let filterVC = FilterViewController()
+            filterVC.delegate = self
+            filterVC.selectedFilter = currentFilter
+            let navigationController = UINavigationController(rootViewController: filterVC)
+            present(navigationController, animated: true)
+        }
+        
+        
+        private func updateCompletedTrackers() {
+            guard let trackerStore = trackerStore else {
+                return
+            }
+            
+            let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+            completedTrackers.removeAll()
+            
+            for tracker in trackerStore.fetchAllTrackers() {
+                if recordStore.recordExistsFor(trackerId: tracker.id, date: currentDate) {
+                    completedTrackers.insert(tracker.id)
+                } else {
+                }
             }
         }
-    }
-
+        
+        
     
     func didChooseFilter(_ filterIndex: Int) {
-        if filterIndex == -1 {
-            currentFilter = .all
-        } else if let filter = TrackerFilter(rawValue: filterIndex) {
+        if let filter = TrackerFilter(rawValue: filterIndex) {
             currentFilter = filter
+            if filter == .today {
+      
+                currentDate = Date()
+                datePicker.setDate(currentDate, animated: true)
+            }
+            filterVisibleCategories() // Обновление списка
+            updateEmptyTrackersVisibility()
+            collectionView.reloadData()
         }
-        filterVisibleCategories() // Обновление списка
-        collectionView.reloadData()
     }
 
-    func filterForToday() {
-        let currentWeekday = currentDate.weekday
-        visibleCategories = categories.map { category in
-            let filteredTrackers = category.trackers.filter { tracker in
-                tracker.schedule?[currentWeekday] ?? true 
-            }
-            return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
+        
+        func filterForToday() {
+            let currentWeekday = currentDate.weekday
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { tracker in
+                    tracker.schedule?[currentWeekday] ?? true
+                }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
+        }
+        
+        func filterForCompleted() {
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { tracker in
+                    let isCompleted = completedTrackers.contains(tracker.id)
+                    print("Filter for completed: \(tracker.id) - \(isCompleted)")
+                    return isCompleted
+                }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
+        }
+        
+        func filterForNotCompleted() {
+            visibleCategories = categories.map { category in
+                let filteredTrackers = category.trackers.filter { tracker in
+                    let isNotCompleted = !completedTrackers.contains(tracker.id)
+                    print("Filter for not completed: \(tracker.id) - \(isNotCompleted)")
+                    return isNotCompleted
+                }
+                return TrackerCategory(title: category.title, trackers: filteredTrackers)
+            }.filter { !$0.trackers.isEmpty }
+        }
+        
+        
     }
-
-    func filterForCompleted() {
-        visibleCategories = categories.map { category in
-            let filteredTrackers = category.trackers.filter { tracker in
-                let isCompleted = completedTrackers.contains(tracker.id)
-                print("Filter for completed: \(tracker.id) - \(isCompleted)")
-                return isCompleted
-            }
-            return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
-    }
-
-    func filterForNotCompleted() {
-        visibleCategories = categories.map { category in
-            let filteredTrackers = category.trackers.filter { tracker in
-                let isNotCompleted = !completedTrackers.contains(tracker.id)
-                print("Filter for not completed: \(tracker.id) - \(isNotCompleted)")
-                return isNotCompleted
-            }
-            return TrackerCategory(title: category.title, trackers: filteredTrackers)
-        }.filter { !$0.trackers.isEmpty }
-    }
-
-
-
-
-}
 
 extension TrackersViewController {
     

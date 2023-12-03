@@ -37,7 +37,7 @@ final class TrackerCategoryStore: NSObject {
             print("Failed to initialize FetchedResultsController: \(error)")
         }
     }
-
+    
     func createCategory(title: String, trackers: [Tracker]) -> TrackerCategory {
         let category = TrackerCategoryCoreData(context: context)
         category.title = title
@@ -47,11 +47,11 @@ final class TrackerCategoryStore: NSObject {
         }
         category.trackers = NSSet(array: trackerCoreDataObjects)
         saveContext()
-        CoreDataManager.shared.saveContext()  // сохранение в persistentContainer
+        CoreDataManager.shared.saveContext()  
         return TrackerCategory(categoryCoreData: category)
     }
-
-
+    
+    
     
     func fetchAllCategories() -> [TrackerCategory] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
@@ -66,7 +66,7 @@ final class TrackerCategoryStore: NSObject {
             print("Ошибка при сохранении контекста: \(error)")
         }
     }
-
+    
     func fetchCategoryCoreData(for trackerCategory: TrackerCategory) -> TrackerCategoryCoreData? { // добавила чторбы работали категории
         let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", trackerCategory.title)
@@ -97,7 +97,7 @@ extension TrackerCategory {
     func coreDataObject(context: NSManagedObjectContext) -> TrackerCategoryCoreData {
         let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
         fetchRequest.predicate = NSPredicate(format: "title == %@", self.title)
-
+        
         if let existingCategory = try? context.fetch(fetchRequest).first {
             return existingCategory
         } else {

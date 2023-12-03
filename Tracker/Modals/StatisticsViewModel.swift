@@ -24,13 +24,13 @@ final class StatisticsViewModel {
         
         let longestStreak = calculateLongestStreak(trackerRecords: allTrackerRecords, trackers: allTrackers)
         let perfectDays = countPerfectDays(trackerRecords: allTrackerRecords, trackers: allTrackers)
-        let completedIrregularTrackers = countCompletedIrregularTrackers(trackerRecords: allTrackerRecords, trackers: allTrackers)
+        let completedTrackers = countCompletedTrackers(trackerRecords: allTrackerRecords)
         let averageCompletion = calculateAverageCompletionDays(trackerRecords: allTrackerRecords, trackers: allTrackers)
         
         statistics = [
             Statistic(title: "Лучший период", value: "\(longestStreak)"),
             Statistic(title: "Идеальные дни", value: "\(perfectDays)"),
-            Statistic(title: "Трекеров завершено", value: "\(completedIrregularTrackers)"),
+            Statistic(title: "Трекеров завершено", value: "\(completedTrackers)"),
             Statistic(title: "Среднее значение", value: "\(averageCompletion)")
         ]
         onStatisticsUpdated?()
@@ -92,14 +92,9 @@ final class StatisticsViewModel {
         return perfectDaysCount
     }
     
-    private func countCompletedIrregularTrackers(trackerRecords: [TrackerRecord], trackers: [Tracker]) -> Int {
-        
-        let irregularTrackers = trackers.filter { $0.schedule == nil || $0.schedule?.isEmpty == true }
-        let completedIrregularTrackerIds = Set(trackerRecords.map { $0.trackerId }).intersection(irregularTrackers.map { $0.id })
-
-        return completedIrregularTrackerIds.count
+    private func countCompletedTrackers(trackerRecords: [TrackerRecord]) -> Int {
+        return Set(trackerRecords.map { $0.trackerId }).count
     }
-
     
     private func calculateAverageCompletionDays(trackerRecords: [TrackerRecord], trackers: [Tracker]) -> Int {
         var totalDays = 0

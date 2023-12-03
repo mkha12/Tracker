@@ -13,21 +13,21 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     private let addButton = UIButton()
     private let categoryTitleLabel = UILabel()
     var selectedIndexPath: IndexPath?
-
-
+    
+    
     var delegate: CategoryViewControllerDelegate?
-
-        
-        var viewModel: CategoriesViewModel? {
-            didSet {
-                viewModel?.updateView = { [weak self] in
-                    DispatchQueue.main.async {
-                        self?.tableView.reloadData()
-                        self?.updateUIForEmptyState()
-                    }
+    
+    
+    var viewModel: CategoriesViewModel? {
+        didSet {
+            viewModel?.updateView = { [weak self] in
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                    self?.updateUIForEmptyState()
                 }
             }
         }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,7 +47,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     func setupUI() {
         
         navigationController?.isNavigationBarHidden = true
-
+        
         view.backgroundColor = .white
         
         tableView.delegate = self
@@ -114,28 +114,28 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
             categoryTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             categoryTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
-      
+        
         updateUIForEmptyState()
         
     }
     
     func updateUIForEmptyState() {
-           let isEmpty = viewModel?.categories.isEmpty ?? true
-           tableView.isHidden = isEmpty
-           emptyImageView.isHidden = !isEmpty
-           emptyLabel.isHidden = !isEmpty
-       }
-
-       func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-           return viewModel?.categories.count ?? 0
-       }
-
+        let isEmpty = viewModel?.categories.isEmpty ?? true
+        tableView.isHidden = isEmpty
+        emptyImageView.isHidden = !isEmpty
+        emptyLabel.isHidden = !isEmpty
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return viewModel?.categories.count ?? 0
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         configureCell(cell, atIndexPath: indexPath)
         return cell
     }
-
+    
     func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath) {
         cell.textLabel?.text = viewModel?.categories[indexPath.row].title
         
@@ -152,16 +152,16 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
             cell.accessoryType = .none
         }
     }
-
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let selectedIndexPath = selectedIndexPath {
             tableView.cellForRow(at: selectedIndexPath)?.accessoryView = nil
-        
+            
         }
-
+        
         selectedIndexPath = indexPath
         tableView.cellForRow(at: indexPath)?.accessoryView = UIImageView(image: UIImage(named: "galochka"))
-
+        
         if let selectedCategory = viewModel?.categories[indexPath.row] {
             delegate?.didSelectCategory(selectedCategory)
             dismiss(animated: true, completion: nil)
@@ -170,8 +170,8 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
-
-
+    
+    
     
     @objc private func addCategory() {
         let newCategoryVC = NewCategoryViewController()
@@ -179,14 +179,14 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         newCategoryVC.viewModel = self.viewModel
         navigationController?.pushViewController(newCategoryVC, animated: true)
     }
-
-       
-       override func viewDidAppear(_ animated: Bool) {
-           super.viewDidAppear(animated)
-           updateUIForEmptyState()
-       }
-
-   }
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateUIForEmptyState()
+    }
+    
+}
 extension CategoryViewController: NewCategoryViewControllerDelegate {
     func newCategoryViewController(_ controller: NewCategoryViewController, didCreateNewCategory category: TrackerCategory) {
     }
