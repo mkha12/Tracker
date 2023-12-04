@@ -243,7 +243,6 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             titleLabel.text = isHabit ? "Новая привычка" : "Новое нерегулярное событие"
             
         case .edit(let tracker):
-            print("Редактируемый трекер: \(tracker.name), расписание: \(String(describing: tracker.schedule))")
             isHabit = tracker.schedule != nil
             daysCountLabel.isHidden = !isHabit
             titleLabel.text = isHabit ? "Редактирование привычки" : "Редактирование нерегулярного события"
@@ -251,6 +250,7 @@ final class TrackerCreationViewController: UIViewController, UITableViewDelegate
             textField.text = tracker.name
             selectedEmoji = tracker.emoji
             selectedColor = tracker.color
+            
             selectedCategory = categoriesViewModel.categories.first { $0.trackers.contains(where: { $0.id == tracker.id }) }
             selectedSchedule = tracker.schedule
             if let daysCount = filledDaysCount {
