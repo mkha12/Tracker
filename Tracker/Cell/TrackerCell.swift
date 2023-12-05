@@ -203,16 +203,19 @@ final class TrackerCell: UICollectionViewCell {
     }
     
     func daysText(for days: Int) -> String {
+        let dayKey = NSLocalizedString("count_day", comment: "")
+        let daysKey = NSLocalizedString("count_days", comment: "")
+
         switch days {
         case 1:
-            return "\(days) день"
+            return "\(days) \(dayKey)"
         case 2...4:
-            return "\(days) дня"
+            return "\(days) \(daysKey)"
         default:
-            return "\(days) дней"
+            return "\(days) \(daysKey)"
         }
     }
-    
+
     func showCompletedState() {
         addButton.setTitle("✓", for: .normal)
     }

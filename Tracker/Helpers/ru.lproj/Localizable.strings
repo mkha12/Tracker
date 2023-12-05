@@ -10,3 +10,4 @@
 "filters" = "Фильтры";
 "title_statistics" = "Статистика";
 "empty_stat_message" = "Анализировать пока нечего";
+"cancel" = "Отменить";

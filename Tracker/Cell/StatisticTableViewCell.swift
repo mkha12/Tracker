@@ -82,7 +82,7 @@ final class StatisticTableViewCell: UITableViewCell {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        gradientLayer.frame = borderView.bounds
+        gradientLayer.frame = self.bounds
     }
     
     func configure(with statistic: Statistic) {

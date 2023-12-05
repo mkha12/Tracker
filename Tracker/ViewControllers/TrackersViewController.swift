@@ -31,6 +31,10 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     let filterButton = UIButton(type: .system)
     var recordStore: TrackerRecordStore?
     var currentFilter: TrackerFilter = .all
+    var cancelButton = UIButton(type: .system)
+    private var searchBarToCancelButtonConstraint: NSLayoutConstraint?
+    private var searchBarTrailingConstraint: NSLayoutConstraint?
+
     
     
     override func viewDidLoad() {
@@ -50,6 +54,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         collectionView.reloadData()
         updateEmptyTrackersVisibility()
         filterVisibleCategories()
+        updateSearchVisibility()
         
     }
     
@@ -78,9 +83,17 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         searchBar.placeholder = NSLocalizedString("search_placeholder", comment: "")
         searchBar.backgroundColor = .white
         searchBar.clearButtonMode = .never
+        searchBar.addTarget(self, action: #selector(searchBarTextDidChanged), for: .editingChanged)
         searchBar.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(searchBar)
         
+        cancelButton = UIButton(type: .system)
+        cancelButton.setTitle(NSLocalizedString("cancel", comment: ""), for: .normal)
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
+        cancelButton.addTarget(self, action: #selector(cancelSearch), for: .touchUpInside)
+        cancelButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(cancelButton)
+        cancelButton.isHidden = true
         
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.dataSource = self
@@ -143,14 +156,26 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         setupConstraints()
         
         
+        
     }
     
     private func setupConstraints() {
-        
-        NSLayoutConstraint.activate([
+
+
+        searchBarTrailingConstraint = searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
+        searchBarToCancelButtonConstraint = searchBar.trailingAnchor.constraint(equalTo: cancelButton.leadingAnchor, constant: -8)
+        cancelButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16).isActive = true
+        cancelButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor).isActive = true
+           
+           NSLayoutConstraint.activate([
+            
             searchBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             searchBar.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            searchBar.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            searchBarTrailingConstraint!,
+                   
+            cancelButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            cancelButton.centerYAnchor.constraint(equalTo: searchBar.centerYAnchor),
+            cancelButton.widthAnchor.constraint(equalToConstant: 83),
             
             collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor, constant: 0),
             collectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 12),
@@ -169,6 +194,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             
             notFoundStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             notFoundStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            
             
             filterButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             filterButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
@@ -204,6 +230,36 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }
     }
     
+    @objc private func cancelSearch() {
+        searchBar.text = ""
+        searchBar.resignFirstResponder()
+        updateSearchVisibility()
+        filterVisibleCategories()
+        collectionView.reloadData()
+    }
+    
+    @objc func searchBarTextDidChanged(_ searchBar: UISearchBar) {
+        updateSearchVisibility()
+        updateEmptyTrackersVisibility()
+    }
+
+    func updateSearchVisibility() {
+        let isSearching = !(searchBar.text?.isEmpty ?? true)
+        cancelButton.isHidden = !isSearching
+
+        if isSearching {
+            searchBarTrailingConstraint?.isActive = false
+            searchBarToCancelButtonConstraint?.isActive = true
+        } else {
+            searchBarTrailingConstraint?.isActive = true
+            searchBarToCancelButtonConstraint?.isActive = false 
+        }
+        
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
+    }
+
     
     func didCreateTracker(tracker: Tracker, categoryName: String) {
         addNewTracker(tracker, toCategory: categoryName)
@@ -269,26 +325,45 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     }
 
         
+//    func updateEmptyTrackersVisibility() {
+//        let isSearchActive = !(searchBar.text ?? "").isEmpty
+//        let noTrackersAvailable = visibleCategories.isEmpty
+//
+//        if noTrackersAvailable {
+//            if isSearchActive {
+//                notFoundStackView.isHidden = false
+//                emptyTrackersStackView.isHidden = true
+//            } else {
+//                emptyTrackersStackView.isHidden = false
+//                notFoundStackView.isHidden = true
+//            }
+//        } else {
+//
+//            emptyTrackersStackView.isHidden = true
+//            notFoundStackView.isHidden = true
+//        }
+//    }
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
-        let noTrackersAvailable = visibleCategories.isEmpty
+        let totalTrackersAvailable = trackers.isEmpty
+        let noVisibleTrackersAvailable = visibleCategories.isEmpty
 
-        if noTrackersAvailable {
-            if isSearchActive {
-                notFoundStackView.isHidden = false
-                emptyTrackersStackView.isHidden = true
-            } else {
-                emptyTrackersStackView.isHidden = false
-                notFoundStackView.isHidden = true
-            }
+        if totalTrackersAvailable {
+            // No trackers at all
+            emptyTrackersStackView.isHidden = false
+            notFoundStackView.isHidden = true
+        } else if isSearchActive && noVisibleTrackersAvailable {
+            // Search is active but no trackers found
+            notFoundStackView.isHidden = false
+            emptyTrackersStackView.isHidden = true
         } else {
-
+            // Trackers are available or search is not active
             emptyTrackersStackView.isHidden = true
             notFoundStackView.isHidden = true
         }
     }
 
-        
+    
         
         func loadTrackers() {
             guard let trackerStore = trackerStore else {
