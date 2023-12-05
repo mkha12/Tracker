@@ -30,12 +30,11 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var trackerCategoryMap: [UUID: Int] = [:]
     let filterButton = UIButton(type: .system)
     var recordStore: TrackerRecordStore?
-    var currentFilter: TrackerFilter = .all
+    var currentFilter: TrackerFilter = .today
     var cancelButton = UIButton(type: .system)
     private var searchBarToCancelButtonConstraint: NSLayoutConstraint?
     private var searchBarTrailingConstraint: NSLayoutConstraint?
 
-    
     
     override func viewDidLoad() {
         AnalyticsService().report(event: "open", params: ["screen": "Main"])
@@ -252,7 +251,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             searchBarToCancelButtonConstraint?.isActive = true
         } else {
             searchBarTrailingConstraint?.isActive = true
-            searchBarToCancelButtonConstraint?.isActive = false 
+            searchBarToCancelButtonConstraint?.isActive = false
         }
         
         UIView.animate(withDuration: 0.3) {
@@ -263,6 +262,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     func didCreateTracker(tracker: Tracker, categoryName: String) {
         addNewTracker(tracker, toCategory: categoryName)
+        filterVisibleCategories()
+        updateEmptyTrackersVisibility()
         collectionView.reloadData()
     }
     
@@ -295,6 +296,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     }
 
     private func filterVisibleCategories() {
+
         let searchText = searchBar.text?.lowercased() ?? ""
         let isSearchActive = !searchText.isEmpty
 
@@ -313,10 +315,11 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
                     matchesDateAndSchedule = scheduleIsEmpty ? !isCompletedBeforeSelectedDate : (tracker.schedule?[currentDate.weekday] ?? false)
                 case .completed:
                     matchesDateAndSchedule = isCompletedOnSelectedDate
+                    
                 case .notCompleted:
-                    matchesDateAndSchedule = scheduleIsEmpty ? !isCompletedBeforeSelectedDate && !isCompletedOnSelectedDate : !isCompletedOnSelectedDate
-                }
+                    matchesDateAndSchedule = scheduleIsEmpty ? !isCompletedBeforeSelectedDate && !isCompletedOnSelectedDate : !isCompletedOnSelectedDate && (tracker.schedule?[currentDate.weekday] ?? false)
 
+                }
                 return matchesSearch && matchesDateAndSchedule
             }
 
@@ -325,49 +328,29 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     }
 
         
-//    func updateEmptyTrackersVisibility() {
-//        let isSearchActive = !(searchBar.text ?? "").isEmpty
-//        let noTrackersAvailable = visibleCategories.isEmpty
-//
-//        if noTrackersAvailable {
-//            if isSearchActive {
-//                notFoundStackView.isHidden = false
-//                emptyTrackersStackView.isHidden = true
-//            } else {
-//                emptyTrackersStackView.isHidden = false
-//                notFoundStackView.isHidden = true
-//            }
-//        } else {
-//
-//            emptyTrackersStackView.isHidden = true
-//            notFoundStackView.isHidden = true
-//        }
-//    }
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
-        let totalTrackersAvailable = trackers.isEmpty
+        let isFilterActive = currentFilter != .all
         let noVisibleTrackersAvailable = visibleCategories.isEmpty
 
-        if totalTrackersAvailable {
-            // No trackers at all
+        if trackers.isEmpty {
+
             emptyTrackersStackView.isHidden = false
             notFoundStackView.isHidden = true
-        } else if isSearchActive && noVisibleTrackersAvailable {
-            // Search is active but no trackers found
+        } else if (isSearchActive || isFilterActive) && noVisibleTrackersAvailable {
+          
             notFoundStackView.isHidden = false
             emptyTrackersStackView.isHidden = true
         } else {
-            // Trackers are available or search is not active
+        
             emptyTrackersStackView.isHidden = true
             notFoundStackView.isHidden = true
         }
     }
 
-    
         
         func loadTrackers() {
             guard let trackerStore = trackerStore else {
-                print("Error: trackerStore is nil")
                 return
             }
             
@@ -429,7 +412,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
                 currentDate = Date()
                 datePicker.setDate(currentDate, animated: true)
             }
-            filterVisibleCategories() // Обновление списка
+            filterVisibleCategories()
             updateEmptyTrackersVisibility()
             collectionView.reloadData()
         }
@@ -450,7 +433,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
                     let isCompleted = completedTrackers.contains(tracker.id)
-                    print("Filter for completed: \(tracker.id) - \(isCompleted)")
                     return isCompleted
                 }
                 return TrackerCategory(title: category.title, trackers: filteredTrackers)
@@ -461,7 +443,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             visibleCategories = categories.map { category in
                 let filteredTrackers = category.trackers.filter { tracker in
                     let isNotCompleted = !completedTrackers.contains(tracker.id)
-                    print("Filter for not completed: \(tracker.id) - \(isNotCompleted)")
                     return isNotCompleted
                 }
                 return TrackerCategory(title: category.title, trackers: filteredTrackers)
@@ -663,6 +644,8 @@ extension TrackersViewController {
                 self.loadTrackers()
                 self.updateCategories()
                 self.filterVisibleCategories()
+                self.collectionView.reloadData()
+                self.updateEmptyTrackersVisibility()
 
                 DispatchQueue.main.async {
                     self.collectionView.reloadData()
