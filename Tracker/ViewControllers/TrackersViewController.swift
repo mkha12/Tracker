@@ -58,6 +58,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     }
     
     
+    
+    
     private func setupUI() {
         
         self.navigationItem.title = NSLocalizedString("title_trackers", comment: "")

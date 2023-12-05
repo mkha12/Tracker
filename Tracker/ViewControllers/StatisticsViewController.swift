@@ -7,14 +7,19 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource,UI
     var emptyStatStackView: UIStackView!
     private var viewModel: StatisticsViewModel!
     private var tableView: UITableView!
+    private var titleLabel: UILabel!
     
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
+    
         
         tableView = UITableView()
         tableView.register(StatisticTableViewCell.self, forCellReuseIdentifier: "StatisticCell")
+        
+        setupUI()
         
         let trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext, categoryStore: TrackerCategoryStore(context: CoreDataManager.shared.persistentContainer.viewContext))
         let trackerRecordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
@@ -28,20 +33,34 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource,UI
             self?.tableView.reloadData()
         }
         tableView.delegate = self
-        setupUI()
         setupConstraints()
         viewModel.loadStatistics()
         updateEmptyStateVisibility()
         tableView.reloadData()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
+    }
+
+
+    
     private func setupUI() {
-        self.navigationItem.title = NSLocalizedString("title_statistics", comment: "")
-        self.navigationController?.navigationBar.prefersLargeTitles = true
         
-        navigationController?.navigationBar.largeTitleTextAttributes = [
-            NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 34)
-        ]
+
+        titleLabel = UILabel()
+            titleLabel.translatesAutoresizingMaskIntoConstraints = false
+            titleLabel.text = NSLocalizedString("title_statistics", comment: "")
+            titleLabel.textColor = .black
+            titleLabel.font = UIFont.boldSystemFont(ofSize: 34)
+            //titleLabel.textAlignment = .center
+            view.addSubview(titleLabel)
+
         
         tableView.dataSource = self
         tableView.separatorStyle = .none
@@ -50,6 +69,8 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource,UI
         view.addSubview(tableView)
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.contentInset = UIEdgeInsets(top: 24, left: 0, bottom: 0, right: 0)
+        
+        
         
         emptyStateImageView = UIImageView()
         emptyStateImageView = UIImageView(image: UIImage(named: "nothig to load"))
@@ -68,6 +89,8 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource,UI
         emptyStatStackView.translatesAutoresizingMaskIntoConstraints = false
         //emptyStatStackView.isHidden = true
         view.addSubview(emptyStatStackView)
+        
+        
     }
     
     
@@ -76,12 +99,21 @@ final class StatisticsViewController: UIViewController, UITableViewDataSource,UI
         NSLayoutConstraint.activate([
             emptyStatStackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             emptyStatStackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            tableView.topAnchor.constraint(equalTo: view.topAnchor),
-            tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16), // Отступ слева
-            tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16), // Отступ справа
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+            
+            titleLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+                    titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
+                    titleLabel.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+                    titleLabel.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+                    
+                    // Установка tableView ниже titleLabel
+                    tableView.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 16), // Отступ от titleLabel
+                    tableView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16), // Отступ слева
+                    tableView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16), // Отступ справа
+                    tableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor), // Прижимаем к нижней части safe area
         ])
     }
+    
+
     
     private func updateEmptyStateVisibility() {
         if viewModel.statistics.isEmpty {
