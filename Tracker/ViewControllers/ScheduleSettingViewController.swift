@@ -60,7 +60,6 @@ final class ScheduleSettingViewController: UIViewController {
         view.backgroundColor = .white
         
         navigationItem.hidesBackButton = true
-        //navigationItem.title = "Расписание"
         
         for day in WeekDay.allCases {
             if selectedDays[day] == nil {
