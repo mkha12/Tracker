@@ -12,12 +12,12 @@
 		CC0C69C22B11FE7A009B99C0 /* TrackerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0C69C12B11FE7A009B99C0 /* TrackerTests.swift */; };
 		CC0C69CA2B11FEF8009B99C0 /* InlineSnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = CC0C69C92B11FEF8009B99C0 /* InlineSnapshotTesting */; };
 		CC0C69CC2B11FEF8009B99C0 /* SnapshotTesting in Frameworks */ = {isa = PBXBuildFile; productRef = CC0C69CB2B11FEF8009B99C0 /* SnapshotTesting */; };
+		CC1EDA0D2B20BFC800BEEFC1 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CC1EDA0F2B20BFC800BEEFC1 /* Localizable.strings */; };
 		CC2DD6702B1231DA00D80773 /* Analitycs.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2DD66F2B1231DA00D80773 /* Analitycs.swift */; };
 		CC64D5962B12699A006AE66C /* StatisticsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC64D5952B12699A006AE66C /* StatisticsViewController.swift */; };
 		CC64D5982B132A99006AE66C /* StatisticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC64D5972B132A99006AE66C /* StatisticsViewModel.swift */; };
 		CC64D59A2B1331EA006AE66C /* StatisticTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC64D5992B1331EA006AE66C /* StatisticTableViewCell.swift */; };
 		CC64D59C2B13C6DD006AE66C /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC64D59B2B13C6DD006AE66C /* FilterViewController.swift */; };
-		CC98C02E2B0F7D8F00916959 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = CC98C0302B0F7D8F00916959 /* Localizable.strings */; };
 		CCB756F52A9E02C0007DC0FF /* ColorCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB756F42A9E02C0007DC0FF /* ColorCollectionView.swift */; };
 		CCB756F72A9E02DE007DC0FF /* EmojiCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB756F62A9E02DE007DC0FF /* EmojiCollectionView.swift */; };
 		CCB756F92A9E2096007DC0FF /* EmojiCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CCB756F82A9E2096007DC0FF /* EmojiCollectionViewCell.swift */; };
@@ -67,14 +67,13 @@
 		C8422F4DE64C8C53A6766376 /* Pods-Tracker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tracker.debug.xcconfig"; path = "Target Support Files/Pods-Tracker/Pods-Tracker.debug.xcconfig"; sourceTree = "<group>"; };
 		CC0C69BF2B11FE7A009B99C0 /* TrackerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TrackerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CC0C69C12B11FE7A009B99C0 /* TrackerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackerTests.swift; sourceTree = "<group>"; };
+		CC1EDA0E2B20BFC800BEEFC1 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		CC1EDA102B20BFE300BEEFC1 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CC2DD66F2B1231DA00D80773 /* Analitycs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Analitycs.swift; sourceTree = "<group>"; };
 		CC64D5952B12699A006AE66C /* StatisticsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsViewController.swift; sourceTree = "<group>"; };
 		CC64D5972B132A99006AE66C /* StatisticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsViewModel.swift; sourceTree = "<group>"; };
 		CC64D5992B1331EA006AE66C /* StatisticTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticTableViewCell.swift; sourceTree = "<group>"; };
 		CC64D59B2B13C6DD006AE66C /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
-		CC98C02B2B0F7D6300916959 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
-		CC98C02F2B0F7D8F00916959 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
-		CC98C0312B0F7D9300916959 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		CCB756F42A9E02C0007DC0FF /* ColorCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCollectionView.swift; sourceTree = "<group>"; };
 		CCB756F62A9E02DE007DC0FF /* EmojiCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCollectionView.swift; sourceTree = "<group>"; };
 		CCB756F82A9E2096007DC0FF /* EmojiCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -246,7 +245,7 @@
 				CCBBA1E82A9783EA0054174F /* UIColor+Extentions.swift */,
 				CCF94E842AD041CC00AFDCE8 /* UIColorValueTransformer.swift */,
 				CCF94E862AD0443000AFDCE8 /* ScheduleValueTransformer.swift */,
-				CC98C0302B0F7D8F00916959 /* Localizable.strings */,
+				CC1EDA0F2B20BFC800BEEFC1 /* Localizable.strings */,
 			);
 			path = Helpers;
 			sourceTree = "<group>";
@@ -373,7 +372,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CCBBA1E12A976EAF0054174F /* LaunchScreen.storyboard in Resources */,
-				CC98C02E2B0F7D8F00916959 /* Localizable.strings in Resources */,
+				CC1EDA0D2B20BFC800BEEFC1 /* Localizable.strings in Resources */,
 				CCBBA1DE2A976EAF0054174F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -504,11 +503,11 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		CC98C0302B0F7D8F00916959 /* Localizable.strings */ = {
+		CC1EDA0F2B20BFC800BEEFC1 /* Localizable.strings */ = {
 			isa = PBXVariantGroup;
 			children = (
-				CC98C02F2B0F7D8F00916959 /* ru */,
-				CC98C0312B0F7D9300916959 /* en */,
+				CC1EDA0E2B20BFC800BEEFC1 /* en */,
+				CC1EDA102B20BFE300BEEFC1 /* ru */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";
@@ -517,7 +516,6 @@
 			isa = PBXVariantGroup;
 			children = (
 				CCBBA1E02A976EAF0054174F /* Base */,
-				CC98C02B2B0F7D6300916959 /* ru */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
