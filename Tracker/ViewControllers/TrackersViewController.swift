@@ -55,6 +55,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         filterVisibleCategories()
         updateSearchVisibility()
         
+        
     }
     
     
@@ -208,6 +209,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     
     func addNewTracker(_ tracker: Tracker, toCategory categoryName: String) {
         AnalyticsService().report(event: "click", params: ["screen": "Main", "item": "add_track"])
+        
+        trackers.append(tracker)
         if let index = categories.firstIndex(where: { $0.title == categoryName }) {
             trackerCategoryMap[tracker.id] = index
             var updatedTrackers = categories[index].trackers
@@ -225,6 +228,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         updateCategories ()
         updateVisibleCategories()
         updateEmptyTrackersVisibility()
+        collectionView.reloadData()
         
         DispatchQueue.main.async { [weak self] in
             self?.collectionView.reloadData()
@@ -236,8 +240,10 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         searchBar.resignFirstResponder()
         updateSearchVisibility()
         filterVisibleCategories()
+        updateEmptyTrackersVisibility()
         collectionView.reloadData()
     }
+
     
     @objc func searchBarTextDidChanged(_ searchBar: UISearchBar) {
         updateSearchVisibility()
@@ -301,7 +307,6 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
 
         let searchText = searchBar.text?.lowercased() ?? ""
         let isSearchActive = !searchText.isEmpty
-
         visibleCategories = categories.flatMap { category -> [TrackerCategory] in
             let filteredTrackers = category.trackers.filter { tracker in
                 let matchesSearch = isSearchActive ? tracker.name.lowercased().contains(searchText) : true
@@ -322,10 +327,11 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
                     matchesDateAndSchedule = scheduleIsEmpty ? !isCompletedBeforeSelectedDate && !isCompletedOnSelectedDate : !isCompletedOnSelectedDate && (tracker.schedule?[currentDate.weekday] ?? false)
 
                 }
+                
                 return matchesSearch && matchesDateAndSchedule
             }
-
             return filteredTrackers.isEmpty ? [] : [TrackerCategory(title: category.title, trackers: filteredTrackers)]
+            
         }
     }
 
@@ -336,15 +342,12 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         let noVisibleTrackersAvailable = visibleCategories.isEmpty
 
         if trackers.isEmpty {
-
             emptyTrackersStackView.isHidden = false
             notFoundStackView.isHidden = true
         } else if (isSearchActive || isFilterActive) && noVisibleTrackersAvailable {
-          
             notFoundStackView.isHidden = false
             emptyTrackersStackView.isHidden = true
         } else {
-        
             emptyTrackersStackView.isHidden = true
             notFoundStackView.isHidden = true
         }
@@ -360,6 +363,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             updateCategories()
             updateCompletedTrackers()
             filterVisibleCategories()
+            updateEmptyTrackersVisibility()
             collectionView.reloadData()
             
             let recordStore = TrackerRecordStore(context: CoreDataManager.shared.persistentContainer.viewContext)
