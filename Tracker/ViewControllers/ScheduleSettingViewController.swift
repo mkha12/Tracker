@@ -19,6 +19,15 @@ final class ScheduleSettingViewController: UIViewController {
     
     weak var delegate: ScheduleSettingViewControllerDelegate?
     
+    let scheduleLabel: UILabel = {
+           let label = UILabel()
+           label.translatesAutoresizingMaskIntoConstraints = false
+           label.text = "Расписание"
+           label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
+           label.textAlignment = .center
+           return label
+       }()
+    
     
     let tableView: UITableView = {
         let tableView = UITableView()
@@ -51,17 +60,26 @@ final class ScheduleSettingViewController: UIViewController {
         view.backgroundColor = .white
         
         navigationItem.hidesBackButton = true
-        navigationItem.title = "Расписание"
         
         for day in WeekDay.allCases {
             if selectedDays[day] == nil {
                 selectedDays[day] = false
             }
         }
-        
+        setupScheduleLabel()
         setupTableView()
         setupButton()
     }
+    
+    func setupScheduleLabel() {
+           view.addSubview(scheduleLabel)
+           
+           NSLayoutConstraint.activate([
+               scheduleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25),
+               scheduleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+               scheduleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+           ])
+       }
     
     func setupTableView() {
         tableView.delegate = self
@@ -72,7 +90,7 @@ final class ScheduleSettingViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             tableView.heightAnchor.constraint(equalToConstant: 525),
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 70),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16)
         ])
@@ -130,7 +148,7 @@ extension ScheduleSettingViewController: UITableViewDataSource, UITableViewDeleg
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "DayCell", for: indexPath)
-        cell.backgroundColor = .backgroundDay
+        cell.backgroundColor = .background
         cell.accessoryView = getSwitch(for: indexPath)
         
         if indexPath.row == 6 {

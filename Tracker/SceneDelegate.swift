@@ -11,9 +11,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
            guard let windowScene = scene as? UIWindowScene else { return }
 
            let mainTabBarController = MainTabBarController()
-        
-           let trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext)
            let categoryStore = TrackerCategoryStore(context: CoreDataManager.shared.persistentContainer.viewContext)
+           let trackerStore = TrackerStore(context: CoreDataManager.shared.persistentContainer.viewContext, categoryStore: categoryStore)
+
            let categoriesViewModel = CategoriesViewModel()
            categoryStore.delegate = categoriesViewModel
 

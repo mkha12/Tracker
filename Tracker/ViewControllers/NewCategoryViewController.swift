@@ -38,7 +38,7 @@ final class NewCategoryViewController: UIViewController {
         categoryNameTextField.translatesAutoresizingMaskIntoConstraints = false
         categoryNameTextField.placeholder = "Введите название категории"
         categoryNameTextField.clearButtonMode = .whileEditing
-        categoryNameTextField.backgroundColor = UIColor.backgroundDay
+        categoryNameTextField.backgroundColor = UIColor.background
         categoryNameTextField.leftViewMode = .always
         categoryNameTextField.layer.cornerRadius = 16
         
@@ -67,7 +67,7 @@ final class NewCategoryViewController: UIViewController {
             categoryNameTextField.heightAnchor.constraint(equalToConstant: 75),
             
             
-            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            titleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20),
             titleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             titleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
@@ -91,7 +91,6 @@ final class NewCategoryViewController: UIViewController {
     
     @objc private func doneButtonTapped() {
         if let categoryName = categoryNameTextField.text, !categoryName.isEmpty {
-            print("Создаем категорию с именем: \(categoryName)")
             let context = CoreDataManager.shared.persistentContainer.viewContext
             let trackerCategoryStore = TrackerCategoryStore(context: context)
             let newCategory = trackerCategoryStore.createCategory(title: categoryName, trackers: [])
@@ -99,5 +98,7 @@ final class NewCategoryViewController: UIViewController {
             navigationController?.popViewController(animated: true)
         }
     }
+    
+
     
 }

@@ -47,9 +47,11 @@ final class TrackerCategoryStore: NSObject {
         }
         category.trackers = NSSet(array: trackerCoreDataObjects)
         saveContext()
-        CoreDataManager.shared.saveContext()  // сохранение в persistentContainer
+        CoreDataManager.shared.saveContext()  
         return TrackerCategory(categoryCoreData: category)
     }
+    
+    
     
     func fetchAllCategories() -> [TrackerCategory] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
@@ -91,3 +93,18 @@ extension TrackerCategory {
         self.trackers = (categoryCoreData.trackers?.allObjects as? [TrackerCoreData])?.map(Tracker.init) ?? []
     }
 }
+extension TrackerCategory {
+    func coreDataObject(context: NSManagedObjectContext) -> TrackerCategoryCoreData {
+        let fetchRequest: NSFetchRequest<TrackerCategoryCoreData> = TrackerCategoryCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "title == %@", self.title)
+        
+        if let existingCategory = try? context.fetch(fetchRequest).first {
+            return existingCategory
+        } else {
+            let newCategory = TrackerCategoryCoreData(context: context)
+            newCategory.title = self.title
+            return newCategory
+        }
+    }
+}
+

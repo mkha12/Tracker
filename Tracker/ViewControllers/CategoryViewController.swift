@@ -13,21 +13,21 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     private let addButton = UIButton()
     private let categoryTitleLabel = UILabel()
     var selectedIndexPath: IndexPath?
-
-
+    
+    
     var delegate: CategoryViewControllerDelegate?
-
-        
-        var viewModel: CategoriesViewModel? {
-            didSet {
-                viewModel?.updateView = { [weak self] in
-                    DispatchQueue.main.async {
-                        self?.tableView.reloadData()
-                        self?.updateUIForEmptyState()
-                    }
+    
+    
+    var viewModel: CategoriesViewModel? {
+        didSet {
+            viewModel?.updateView = { [weak self] in
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                    self?.updateUIForEmptyState()
                 }
             }
         }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -45,7 +45,9 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
     }
     
     func setupUI() {
-
+        
+        navigationController?.isNavigationBarHidden = true
+        
         view.backgroundColor = .white
         
         tableView.delegate = self
@@ -91,7 +93,7 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         categoryTitleLabel.translatesAutoresizingMaskIntoConstraints = false
         
         NSLayoutConstraint.activate([
-            tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 24),
+            tableView.topAnchor.constraint(equalTo: categoryTitleLabel.bottomAnchor, constant: 24),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             tableView.bottomAnchor.constraint(equalTo: addButton.topAnchor, constant: -16),
@@ -108,36 +110,36 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
             addButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             addButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
             
-            categoryTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
+            categoryTitleLabel.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 25),
             categoryTitleLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
             categoryTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
-      
+        
         updateUIForEmptyState()
         
     }
     
     func updateUIForEmptyState() {
-           let isEmpty = viewModel?.categories.isEmpty ?? true
-           tableView.isHidden = isEmpty
-           emptyImageView.isHidden = !isEmpty
-           emptyLabel.isHidden = !isEmpty
-       }
-
-       func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-           return viewModel?.categories.count ?? 0
-       }
-
+        let isEmpty = viewModel?.categories.isEmpty ?? true
+        tableView.isHidden = isEmpty
+        emptyImageView.isHidden = !isEmpty
+        emptyLabel.isHidden = !isEmpty
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return viewModel?.categories.count ?? 0
+    }
+    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CategoryCell", for: indexPath)
         configureCell(cell, atIndexPath: indexPath)
         return cell
     }
-
+    
     func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath) {
         cell.textLabel?.text = viewModel?.categories[indexPath.row].title
         
-        cell.backgroundColor = UIColor.backgroundDay
+        cell.backgroundColor = UIColor.background
         cell.textLabel?.font = UIFont.systemFont(ofSize: 17)
         cell.textLabel?.backgroundColor = UIColor.clear
         cell.layer.cornerRadius = 8
@@ -150,16 +152,16 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
             cell.accessoryType = .none
         }
     }
-
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if let selectedIndexPath = selectedIndexPath {
             tableView.cellForRow(at: selectedIndexPath)?.accessoryView = nil
-        
+            
         }
-
+        
         selectedIndexPath = indexPath
         tableView.cellForRow(at: indexPath)?.accessoryView = UIImageView(image: UIImage(named: "galochka"))
-
+        
         if let selectedCategory = viewModel?.categories[indexPath.row] {
             delegate?.didSelectCategory(selectedCategory)
             dismiss(animated: true, completion: nil)
@@ -168,28 +170,24 @@ final class CategoryViewController: UIViewController, UITableViewDelegate, UITab
         }
         tableView.deselectRow(at: indexPath, animated: true)
     }
-
-
+    
+    
     
     @objc private func addCategory() {
         let newCategoryVC = NewCategoryViewController()
         newCategoryVC.delegate = self
         newCategoryVC.viewModel = self.viewModel
         navigationController?.pushViewController(newCategoryVC, animated: true)
-        //present(newCategoryVC, animated: true, completion: nil)
     }
-
-       
-       override func viewDidAppear(_ animated: Bool) {
-           super.viewDidAppear(animated)
-           updateUIForEmptyState()
-       }
-
-   }
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        updateUIForEmptyState()
+    }
+    
+}
 extension CategoryViewController: NewCategoryViewControllerDelegate {
     func newCategoryViewController(_ controller: NewCategoryViewController, didCreateNewCategory category: TrackerCategory) {
-        viewModel?.categories.append(category)
-        tableView.reloadData()
-        updateUIForEmptyState()
     }
 }

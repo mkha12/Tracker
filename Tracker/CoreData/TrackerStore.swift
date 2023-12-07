@@ -6,20 +6,26 @@ protocol TrackerStoreProtocol {
     func addTrackerToCategory(_ tracker: Tracker, toCategory category: TrackerCategory)
     func fetchAllTrackers() -> [Tracker]
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker
+    func updateTracker(_ tracker: Tracker, category: TrackerCategory?)
+    func deleteTracker(_ tracker: Tracker)
 }
 
 protocol TrackerStoreDelegate: AnyObject {
     func didChangeTrackers(trackers: [Tracker])
+    func didChangeTrackerData()
 }
 
 
 final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsControllerDelegate {
     
+    
+    private let categoryStore: TrackerCategoryStore
     private let context: NSManagedObjectContext
     weak var delegate: TrackerStoreDelegate?
     
-    init(context: NSManagedObjectContext) {
+    init(context: NSManagedObjectContext, categoryStore: TrackerCategoryStore) {
         self.context = context
+        self.categoryStore = categoryStore
         super.init()
         setupFetchedResultsController()
     }
@@ -48,6 +54,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
     }
     
     func createTracker(id: UUID, name: String, color: UIColor, emoji: String, schedule: [WeekDay: Bool]) -> Tracker {
+        print("Создается трекер с расписанием: \(schedule)")
         let tracker = TrackerCoreData(context: context)
         tracker.id = id
         tracker.name = name
@@ -58,6 +65,33 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
         CoreDataManager.shared.saveContext()
         return Tracker(trackerCoreData: tracker)
     }
+    
+    
+    func updateTracker(_ tracker: Tracker, category: TrackerCategory?) {
+        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            if let trackerToUpdate = results.first {
+                trackerToUpdate.name = tracker.name
+                trackerToUpdate.color = tracker.color
+                trackerToUpdate.emoji = tracker.emoji
+                trackerToUpdate.schedule = tracker.schedule as? NSObject
+                
+                if let category = category,
+                   let categoryCoreData = categoryStore.fetchCategoryCoreData(for: category) {
+                    trackerToUpdate.category = categoryCoreData
+                }
+                
+                saveContext()
+            }
+        } catch {
+            print("Ошибка при обновлении трекера: \(error)")
+        }
+    }
+    
+    
     
     func fetchAllTrackers() -> [Tracker] {
         let fetchedObjects = fetchedResultsController.fetchedObjects ?? []
@@ -70,7 +104,7 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
                 try context.save()
                 print("Context saved successfully")
             } catch {
-                print("Failed to save context: \(error)")
+                print("Failed to save context: \(error.localizedDescription)")
             }
         } else {
             print("No changes in context to save")
@@ -104,6 +138,29 @@ final class TrackerStore: NSObject, TrackerStoreProtocol, NSFetchedResultsContro
             print("Error searching for tracker or category: \(error)")
         }
     }
+    func deleteTracker(_ tracker: Tracker) {
+        let fetchRequest: NSFetchRequest<TrackerCoreData> = TrackerCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "id == %@", tracker.id as CVarArg)
+        
+        do {
+            let results = try context.fetch(fetchRequest)
+            if let trackerToDelete = results.first {
+                let recordFetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+                recordFetchRequest.predicate = NSPredicate(format: "trackerId == %@", tracker.id as CVarArg)
+                let recordsToDelete = try context.fetch(recordFetchRequest)
+                for record in recordsToDelete {
+                    context.delete(record)
+                }
+                context.delete(trackerToDelete)
+                saveContext()
+                
+                delegate?.didChangeTrackers(trackers: fetchAllTrackers())
+            }
+        } catch {
+            print("Ошибка при удалении трекера: \(error)")
+        }
+    }
+    
     
 }
 
@@ -116,3 +173,4 @@ extension Tracker {
         self.schedule = trackerCoreData.schedule as? [WeekDay: Bool] ?? [:]
     }
 }
+

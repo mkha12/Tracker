@@ -3,6 +3,7 @@ import CoreData
 
 protocol TrackerRecordStoreDelegate: AnyObject {
     func didChangeRecords(records: [TrackerRecord])
+    
 }
 
 final class TrackerRecordStore: NSObject {
@@ -64,6 +65,20 @@ final class TrackerRecordStore: NSObject {
             return false
         }
     }
+    
+    func recordExistsBeforeDate(trackerId: UUID, date: Date) -> Bool {
+        let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "trackerId == %@ AND date < %@", trackerId as CVarArg, date.startOfDay as CVarArg)
+        
+        do {
+            let count = try context.count(for: fetchRequest)
+            return count > 0
+        } catch {
+            print("Failed to count TrackerRecordCoreData: \(error)")
+            return false
+        }
+    }
+
 
     func removeRecordFor(trackerId: UUID, date: Date) {
         let fetchRequest: NSFetchRequest<TrackerRecordCoreData> = TrackerRecordCoreData.fetchRequest()
@@ -84,7 +99,7 @@ final class TrackerRecordStore: NSObject {
         do {
             try context.save()
         } catch {
-            print("Failed to save context: \(error)")
+            print("Failed to save context в записях : \(error.localizedDescription)")
         }
     }
     

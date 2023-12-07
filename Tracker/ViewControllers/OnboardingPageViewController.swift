@@ -66,7 +66,7 @@ final class OnboardingPageController: UIViewController {
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.numberOfLines = 2
         titleLabel.font = UIFont.systemFont(ofSize: 32, weight: .bold)
-        titleLabel.textColor = .blackDay
+        titleLabel.textColor = .black
         titleLabel.textAlignment = .center
         view.addSubview(titleLabel)
         
@@ -81,7 +81,7 @@ final class OnboardingPageController: UIViewController {
         
         view.addSubview(continueButton)
         continueButton.translatesAutoresizingMaskIntoConstraints = false
-        continueButton.backgroundColor = .blackDay
+        continueButton.backgroundColor = .black
         continueButton.setTitleColor(.white, for: .normal)
         continueButton.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         

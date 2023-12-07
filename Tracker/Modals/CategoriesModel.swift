@@ -24,7 +24,9 @@ final class CategoriesViewModel {
            let newCategory = trackerCategoryStore.createCategory(title: title, trackers: trackers)
            self.categories.append(newCategory)
        }
+
     
+
     private func loadCategories() {
            self.categories = trackerCategoryStore.fetchAllCategories()
        }
