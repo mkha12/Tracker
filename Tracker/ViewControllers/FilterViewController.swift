@@ -97,20 +97,20 @@ final class FilterViewController: UIViewController, UITableViewDelegate, UITable
         }
     }
     
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let selectedFilter = TrackerFilter(rawValue: indexPath.row)
-        if self.selectedFilter == selectedFilter {
-            self.selectedFilter = nil
-            delegate?.didChooseFilter(-1)
+        if let selectedFilter = TrackerFilter(rawValue: indexPath.row),
+           self.selectedFilter == selectedFilter {
+            self.selectedFilter = .all
+            delegate?.didChooseFilter(TrackerFilter.all.rawValue)
         } else {
-            self.selectedFilter = selectedFilter
-            delegate?.didChooseFilter(selectedFilter?.rawValue ?? -1)
+            self.selectedFilter = TrackerFilter(rawValue: indexPath.row)
+            delegate?.didChooseFilter(self.selectedFilter?.rawValue ?? -1)
         }
         tableView.reloadData()
         dismiss(animated: true, completion: nil)
     }
-    
+
 }
 
 extension TrackerFilter: CaseIterable {
