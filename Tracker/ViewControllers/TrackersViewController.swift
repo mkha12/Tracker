@@ -30,7 +30,7 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
     var trackerCategoryMap: [UUID: Int] = [:]
     let filterButton = UIButton(type: .system)
     var recordStore: TrackerRecordStore?
-    var currentFilter: TrackerFilter = .today
+    var currentFilter: TrackerFilter = .all
     var cancelButton = UIButton(type: .system)
     private var searchBarToCancelButtonConstraint: NSLayoutConstraint?
     private var searchBarTrailingConstraint: NSLayoutConstraint?
@@ -335,16 +335,18 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
         }
     }
 
-        
+    
+    
     func updateEmptyTrackersVisibility() {
         let isSearchActive = !(searchBar.text ?? "").isEmpty
         let isFilterActive = currentFilter != .all
-        let noVisibleTrackersAvailable = visibleCategories.isEmpty
+        let noTrackersForSelectedDate = visibleCategories.isEmpty && !trackers.isEmpty
+        let noSearchResults = isSearchActive && visibleCategories.isEmpty
 
-        if trackers.isEmpty {
+        if noTrackersForSelectedDate && !isSearchActive && !isFilterActive {
             emptyTrackersStackView.isHidden = false
             notFoundStackView.isHidden = true
-        } else if (isSearchActive || isFilterActive) && noVisibleTrackersAvailable {
+        } else if noSearchResults || (isFilterActive && visibleCategories.isEmpty) {
             notFoundStackView.isHidden = false
             emptyTrackersStackView.isHidden = true
         } else {
@@ -352,6 +354,8 @@ final class TrackersViewController: UIViewController, UICollectionViewDataSource
             notFoundStackView.isHidden = true
         }
     }
+
+
 
         
         func loadTrackers() {
